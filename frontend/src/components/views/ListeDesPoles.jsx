@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
+import { Modal, Button } from 'react-bootstrap';
 import FormPole from '../forms/FormPole';
+import ConstructionTimesheet from '../chefchantier/form/ConstructionTimesheet'
+import FlashMensuel from '../chefchantier/form/FlashMensuel'
+import RecapSortieAtelier from '../chefchantier/form/RecapSortieAtelier'
+import RecapSortieChaudronnerie from '../chefchantier/form/RecapSortieChaudronnerie'
+import WarehouseInventoryForm from '../chefchantier/form/WarehouseInventoryForm'
+
 
 function ListeDesPoles({ poles, directors, onAddPole }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedForm, setSelectedForm] = useState(null);
+  const [formData, setFormData] = useState(null);
+  const [selectedPoleId, setSelectedPoleId] = useState(null);
 
   const filteredPoles = poles.filter(
     (pole) =>
@@ -29,6 +40,72 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
 
   const handleClearSearch = () => {
     setSearchTerm('');
+  };
+
+  const formComponents = {
+    constructionTimesheet: ConstructionTimesheet,
+    flashMensuel: FlashMensuel,
+    recapSortieAtelier: RecapSortieAtelier,
+    recapSortieChaudronnerie: RecapSortieChaudronnerie,
+    warehouseInventoryForm: WarehouseInventoryForm,
+  };
+
+  const formEndpoints = {
+    constructionTimesheet: 'constructiontimesheet',
+    flashMensuel: 'flashmensuel',
+    recapSortieAtelier: 'recapsortieatelier',
+    recapSortieChaudronnerie: 'recapsortiechaudronnerie',
+    warehouseInventoryForm: 'warehouseinventoryform',
+  };
+
+  const formTitles = {
+    constructionTimesheet: 'Construction Timesheet',
+    flashMensuel: 'Flash Mensuel',
+    recapSortieAtelier: 'Recap Sortie Atelier',
+    recapSortieChaudronnerie: 'Recap Sortie Chaudronnerie',
+    warehouseInventoryForm: 'Warehouse Inventory',
+  };
+
+  const formColors = {
+    constructionTimesheet: 'blue',
+    flashMensuel: 'green',
+    recapSortieAtelier: 'red',
+    recapSortieChaudronnerie: 'yellow',
+    warehouseInventoryForm: 'purple',
+  };
+
+  const loadFormData = async (formType, poleId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/load-${formEndpoints[formType]}?pole_id=${poleId}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to load form data');
+      }
+      const data = await response.json();
+      setFormData(data);
+    } catch (error) {
+      console.error('Error loading form data:', error);
+      setFormData(null);
+      alert('Failed to load form data');
+    }
+  };
+
+  const handleDocumentClick = (formType, poleId) => {
+    setSelectedForm(formType);
+    setSelectedPoleId(poleId);
+    loadFormData(formType, poleId);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedForm(null);
+    setFormData(null);
+    setSelectedPoleId(null);
   };
 
   return (
@@ -77,7 +154,7 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
               <th>Directeur</th>
               <th>Commune</th>
               <th>Wilaya</th>
-              <th>Voir Document</th>
+              <th>Documents</th>
             </tr>
           </thead>
           <tbody>
@@ -90,17 +167,20 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
                   <td>{pole.commune}</td>
                   <td>{pole.wilaya}</td>
                   <td>
-                    {pole.document_url ? (
-                      <button
-                        className="btn btn-sm btn-outline-primary"
-                        onClick={() => window.open(pole.document_url, '_blank', 'noopener,noreferrer')}
-                        aria-label={`Voir le document pour ${pole.title}`}
-                      >
-                        Voir
-                      </button>
-                    ) : (
-                      'Aucun document'
-                    )}
+                    <div className="d-flex gap-2">
+                      {Object.keys(formComponents).map((formType) => (
+                        <button
+                          key={formType}
+                          className="btn btn-sm"
+                          style={{ backgroundColor: formColors[formType], color: 'white' }}
+                          onClick={() => handleDocumentClick(formType, pole.id)}
+                          aria-label={`Voir ${formTitles[formType]} pour ${pole.title}`}
+                          title={formTitles[formType]}
+                        >
+                          <i className="bi bi-file-earmark-text"></i>
+                        </button>
+                      ))}
+                    </div>
                   </td>
                 </tr>
               ))
@@ -127,6 +207,27 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
         onSave={handleAddPole}
         directors={directors}
       />
+
+      <Modal show={showModal} onHide={handleCloseModal} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>{selectedForm ? formTitles[selectedForm] : 'Loading...'}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedForm && formData ? (
+            (() => {
+              const FormComponent = formComponents[selectedForm];
+              return <FormComponent formData={formData} poleId={selectedPoleId} />;
+            })()
+          ) : (
+            <p>Loading form data...</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Fermer
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

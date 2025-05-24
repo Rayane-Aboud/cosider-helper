@@ -371,9 +371,14 @@ const ChefChantier = ({ userData, onLogout }) => {
         {/* Header */}
         <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold text-gray-800">
-              Application Suivi de la Médecine Au Travail
-            </h1>
+            <div className="flex items-center">
+            <img 
+                src="/Logo_Cosider.png" 
+                alt="Cosider Logo" 
+                className="logo"
+                style={{ width: '100px', height: '40px', objectFit: 'contain' }}
+            />
+            </div>
             <span className="text-sm text-gray-600">Direction générale</span>
           </div>
         </div>

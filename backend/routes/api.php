@@ -5,6 +5,11 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PoleController;
 use App\Http\Controllers\DirectorController;
 use App\Http\Controllers\NTController;
+use App\Http\Controllers\ConstructionTimesheetController;
+use App\Http\Controllers\FlashMensuelController;
+use App\Http\Controllers\RecapSortieAtelierController;
+use App\Http\Controllers\RecapSortieChaudronnerieController;
+use App\Http\Controllers\WarehouseInventoryController;
 
 // Pole routes
 Route::get('/poles', [PoleController::class, 'index']);
@@ -31,3 +36,15 @@ Route::put('/nts/{nt}', [NTController::class, 'update']);
 Route::delete('/nts/{nt}', [NTController::class, 'destroy']);
 Route::get('/nts/pole/{poleId}', [NTController::class, 'byPole']);
 Route::get('/nts/search', [NTController::class, 'search']);
+
+// Form routes
+Route::post('/save-constructiontimesheet', [ConstructionTimesheetController::class, 'save']);
+Route::get('/load-constructiontimesheet', [ConstructionTimesheetController::class, 'load']);
+Route::post('/save-flashmensuel', [FlashMensuelController::class, 'save']);
+Route::get('/load-flashmensuel', [FlashMensuelController::class, 'load']);
+Route::post('/save-recapsortieatelier', [RecapSortieAtelierController::class, 'save']);
+Route::get('/load-recapsortieatelier', [RecapSortieAtelierController::class, 'load']);
+Route::post('/save-recapsortiechaudronnerie', [RecapSortieChaudronnerieController::class, 'save']);
+Route::get('/load-recapsortiechaudronnerie', [RecapSortieChaudronnerieController::class, 'load']);
+Route::post('/save-warehouseinventoryform', [WarehouseInventoryController::class, 'save']);
+Route::get('/load-warehouseinventoryform', [WarehouseInventoryController::class, 'load']);
