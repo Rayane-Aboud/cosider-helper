@@ -122,7 +122,7 @@ export default function LoginPage({ onLogin }) {
               <p className="overlay-text">Leader dans le secteur de la construction en Algérie depuis plus de 50 ans.</p>
             </div>
           </div>
-          <img src="/image_LoginPage.jpg" alt="Construction Site" className="bg-image" />
+          <img src="/background_img.jpg" alt="Construction Site" className="bg-image" />
         </Col>
       </Row>
     </Container>

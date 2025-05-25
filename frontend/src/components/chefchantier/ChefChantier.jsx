@@ -99,19 +99,11 @@ const ChefChantier = ({ userData, onLogout }) => {
   };
 
   const documentTypeNames = {
-    construction_timesheet: 'VENTILATIONS DES HEURES TRAVAILLEES',
+    construction_timesheet: 'Construction Timesheet',
     flash_mensuel: 'Flash Mensuel',
     recap_sortie_atelier: 'Récap Sortie Atelier',
     recap_sortie_chaudronnerie: 'Récap Sortie Chaudronnerie',
     warehouse_inventory: 'Warehouse Inventory'
-  };
-
-  const componentMap = {
-    construction_timesheet: ConstructionTimesheet,
-    flash_mensuel: FlashMensuel,
-    recap_sortie_atelier: RecapSortieAtelier,
-    recap_sortie_chaudronnerie: RecapSortieChaudronnerie,
-    warehouse_inventory: WarehouseInventoryForm,
   };
 
   const toggleMenu = (menuKey) => {
@@ -194,14 +186,6 @@ const ChefChantier = ({ userData, onLogout }) => {
     }
   };
 
-  const handleViewDocument = (doc) => {
-    console.log('Viewing document:', doc);
-    setSelectedDocument(doc);
-    setSelectedForm(doc.type);
-    setFormData(doc.data);
-    setActiveView('form');
-  };
-
   const MenuItem = ({ icon: Icon, label, isActive = false, hasSubmenu = false, isExpanded = false, onClick, children }) => {
     console.log(`Rendering MenuItem: ${label}, isActive=${isActive}, hasSubmenu=${hasSubmenu}, isExpanded=${isExpanded}`);
     return (
@@ -280,7 +264,7 @@ const ChefChantier = ({ userData, onLogout }) => {
                     <tr 
                       key={doc.id}
                       className={`hover:bg-gray-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                      onClick={() => handleViewDocument(doc)}
+                      onClick={() => setSelectedDocument(doc)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {documentTypeNames[doc.type] || doc.type}
@@ -307,30 +291,31 @@ const ChefChantier = ({ userData, onLogout }) => {
       );
     }
 
+    const componentMap = {
+      construction_timesheet: ConstructionTimesheet,
+      flash_mensuel: FlashMensuel,
+      recap_sortie_atelier: RecapSortieAtelier,
+      recap_sortie_chaudronnerie: RecapSortieChaudronnerie,
+      warehouse_inventory: WarehouseInventoryForm,
+    };
+
     const FormComponent = componentMap[selectedForm];
     if (FormComponent) {
       console.log(`Rendering form: ${selectedForm}, poleCode: ${userData.poleData.code}, formData:`, formData);
       return (
-        <div>
-          <button
-            className="mb-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-blue-700"
-            onClick={() => setActiveView('historique')}
-          >
-            Retour à l'Historique
-          </button>
-          <FormComponent
-            poleCode={userData.poleData.code}
-            formData={formData}
-            onSave={selectedDocument ? null : handleSave} // Disable save for historical view
-            readOnly={!!selectedDocument} // Read-only if viewing historical document
-          />
-        </div>
+        <FormComponent
+          poleCode={userData.poleData.code}
+          formData={formData}
+          onSave={handleSave}
+        />
       );
     }
 
-    return (
-      <>
-        <div className="flex items-center justify-between mb-6">
+    const documents = getDocuments();
+      console.log('Rendering historique view, documents:', documents);
+      return (
+        <>
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-semibold text-gray-800">Historique des Documents</h2>
             <div className="flex items-center">
               <div className="relative">
@@ -369,7 +354,7 @@ const ChefChantier = ({ userData, onLogout }) => {
                     <tr 
                       key={doc.id}
                       className={`hover:bg-gray-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                      onClick={() => handleViewDocument(doc)}
+                      onClick={() => setSelectedDocument(doc)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {documentTypeNames[doc.type] || doc.type}
@@ -392,8 +377,8 @@ const ChefChantier = ({ userData, onLogout }) => {
               </tbody>
             </table>
           </div>
-      </>
-    );
+        </>
+      );
   };
 
   return (
@@ -401,116 +386,114 @@ const ChefChantier = ({ userData, onLogout }) => {
       <div className={`bg-white shadow-lg transition-all duration-300 ${isMenuOpen ? 'w-64' : 'w-16'} overflow-hidden`}>
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center">
-            <button
-              onClick={() => setIsMenuOpen(true)}
-              className="p-1 rounded hover:bg-gray-200 mr-3"
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-1 rounded hover:bg-gray-100 mr-3"
             >
-              <Menu className="w-5 h-0 mr-0">Menu Item</Menu>
+              <Menu className="w-5 h-5" />
             </button>
             {isMenuOpen && <span className="font-semibold text-gray-800">Menu</span>}
           </div>
+        
         </div>
 
         <nav className="py-4 flex flex-col h-[calc(100%-4rem)]">
           <div className="flex-1">
           <MenuItem 
-                icon={Clock}
+                icon={Clock} 
                 label="Historique"
                 onClick={() => {
                   console.log('Clicked Historique');
                   setSelectedForm(null);
-                  setSelectedDocument(null);
                   setActiveView('historique');
                   setSearchTerm('');
                 }}
               />
-            <MenuItem
-              icon={File}
+            <MenuItem 
+              icon={File} 
               label="Documents"
               hasSubmenu={true}
               isExpanded={expandedMenus.documents}
               onClick={() => toggleMenu('documents')}
             >
-              <MenuItem
-                icon={FileText}
-                label="VENTILATIONS DES HEURES TRAVAILLEES"
+              <MenuItem 
+                icon={FileText} 
+                label="Construction Timesheet"
                 onClick={() => {
-                  console.log('Clicked VENTILATIONS DES HEURES TRAVAILLEES');
+                  console.log('Clicked Construction Timesheet');
                   setSelectedForm('construction_timesheet');
-                  setSelectedDocument(null);
                   setActiveView('form');
                   loadFormData('construction_timesheet');
                 }}
               />
-              <MenuItem
-                icon={FileText}
+              <MenuItem 
+                icon={FileText} 
                 label="Flash Mensuel"
                 onClick={() => {
                   console.log('Clicked Flash Mensuel');
                   setSelectedForm('flash_mensuel');
-                  setSelectedDocument(null);
                   setActiveView('form');
                   loadFormData('flash_mensuel');
                 }}
               />
-              <MenuItem
-                icon={FileText}
-                label="Recap Sortie Atelier Armatures"
+              <MenuItem 
+                icon={FileText} 
+                label="Recap Sortie Atelier"
                 onClick={() => {
-                  console.log('Clicked Recap Sortie Atelier Armatures');
+                  console.log('Clicked Recap Sortie Atelier');
                   setSelectedForm('recap_sortie_atelier');
-                  setSelectedDocument(null);
                   setActiveView('form');
                   loadFormData('recap_sortie_atelier');
                 }}
               />
-              <MenuItem
-                icon={FileText}
+              <MenuItem 
+                icon={FileText} 
                 label="Recap Sortie Chaudronnerie"
                 onClick={() => {
                   console.log('Clicked Recap Sortie Chaudronnerie');
                   setSelectedForm('recap_sortie_chaudronnerie');
-                  setSelectedDocument(null);
                   setActiveView('form');
                   loadFormData('recap_sortie_chaudronnerie');
                 }}
               />
-              <MenuItem
-                icon={FileText}
+              <MenuItem 
+                icon={FileText} 
                 label="Warehouse Inventory"
                 onClick={() => {
                   console.log('Clicked Warehouse Inventory');
                   setSelectedForm('warehouse_inventory');
-                  setSelectedDocument(null);
                   setActiveView('form');
                   loadFormData('warehouse_inventory');
                 }}
               />
               
             </MenuItem>
-            
+
           </div>
-          
           <MenuItem 
-            icon={LogOut}
+            icon={LogOut} 
             label="Déconnexion"
             onClick={onLogout}
           />
         </nav>
       </div>
 
-        <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col">
         <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex justify-center w-full">
-              <div className="flex flex-col items-center text-center">
-                <img className="cosider-logo" src="/Logo_Cosider.png" alt="Logo Cosider" />
-                <h2 className="cosider-title m-0">Application Suivi des données de Contrôle de gestion</h2>
-              </div>
-            </div>
-            <span>Chef Chantier</span>
-          </div>
+            <div className="flex items-center">
+              <img 
+                src="/Logo_Cosider.png" 
+                alt="Cosider Logo" 
+                className="logo"
+                style={{ width: '100px', height: '40px', objectFit: 'contain' }}
+              />
         
+             
+            </div>
+            <span className="text-sm text-gray-600">Chantier</span>
+          </div>
+          <h3><b>Application Suivi des données de Contrôle de gestion</b></h3>
         </div>
 
         <div className="flex-1 p-6">
@@ -519,27 +502,63 @@ const ChefChantier = ({ userData, onLogout }) => {
       </div>
 
       {selectedNote && (
-        <div className="fixed inset-0 bg-gray-700 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
             <h3 className="text-lg font-semibold mb-4">Détails de la Note</h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div>
                 <span className="font-medium">Référence:</span> {selectedNote.reference}
               </div>
               <div>
-                <span className="font-medium">Objet :</span> {selectedNote.objet}
+                <span className="font-medium">Objet:</span> {selectedNote.objet}
               </div>
               <div>
-                <span className="font-medium">Date :</span> {selectedNote.date}
+                <span className="font-medium">Date:</span> {selectedNote.date}
               </div>
               <div>
-                <span class="font-medium">Statut :</span> {selectedNote.status}
+                <span className="font-medium">Status:</span> {selectedNote.status}
               </div>
             </div>
-            <div className="flex justify-end mt-4">
+            <div className="flex justify-end mt-6">
               <button 
                 onClick={() => setSelectedNote(null)}
-                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
+            <h3 className="text-lg font-semibold mb-4">Détails du Document</h3>
+            <div className="space-y-3">
+              <div>
+                <span className="font-medium">Type:</span> {documentTypeNames[selectedDocument.type] || selectedDocument.type}
+              </div>
+              <div>
+                <span className="font-medium">Référence:</span> {selectedDocument.id}
+              </div>
+              <div>
+                <span className="font-medium">Pôle:</span> {selectedDocument.pole}
+              </div>
+              <div>
+                <span className="font-medium">Date:</span> {formatDate(selectedDocument.data.mois, selectedDocument.data.month)}
+              </div>
+              <div>
+                <span className="font-medium">Données:</span>
+                <pre className="text-sm bg-gray-100 p-2 rounded overflow-auto max-h-40">
+                  {JSON.stringify(selectedDocument.data, null, 2)}
+                </pre>
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button 
+                onClick={() => setSelectedDocument(null)}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
               >
                 Fermer
               </button>
