@@ -432,7 +432,6 @@ const ChefChantier = ({ userData, onLogout }) => {
             </button>
             {isMenuOpen && <span className="font-semibold text-gray-800">Menu</span>}
           </div>
-          {isMenuOpen && <div className="text-red-600 font-bold text-lg">cosidar كوسيدار</div>}
         </div>
 
         <nav className="py-4 flex flex-col h-[calc(100%-4rem)]">
