@@ -523,12 +523,11 @@ const ChefChantier = ({ userData, onLogout }) => {
         <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <img 
-                src="/Logo_Cosider.png" 
-                alt="Cosider Logo" 
-                className="logo"
-                style={{ width: '100px', height: '40px', objectFit: 'contain' }}
-              />
+              
+              <div className="d-flex flex-column align-items-center text-center mx-auto">
+        <img className="cosider-logo" src="/Logo_Cosider.png" alt="Logo Cosider" />
+        <h2 className="cosider-title m-0">Application Suivi des données de Contrôle de gestion</h2>
+      </div>
             </div>
             <span class="text-sm text-gray-600">Chantier</span>
           </div>
