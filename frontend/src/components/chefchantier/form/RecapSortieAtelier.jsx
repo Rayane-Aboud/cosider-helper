@@ -132,7 +132,7 @@ export default function RecapSortieAtelier({ formData: initialFormData, poleCode
 
         {/* Title */}
         <div className="text-center py-8 border-b-2 border-black">
-          <h1 className="text-2xl font-bold">Recap Sortie Atelier Armatures</h1>
+          <h1 className="text-2xl font-bold">Recap Sortie Atelier Armatures </h1>
         </div>
 
         {/* Pole section */}
@@ -276,7 +276,7 @@ export default function RecapSortieAtelier({ formData: initialFormData, poleCode
             onClick={handleSave}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
-            Save Recap Sortie Atelier
+            Save Recap Sortie Atelier 
           </button>
           <span className="text-sm">PRO-04-ENR-10</span>
         </div>

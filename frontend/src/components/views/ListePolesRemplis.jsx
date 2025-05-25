@@ -19,7 +19,7 @@ function ListePolesRemplis() {
   const currentYear = dayjs().year(); // 2025
 
   const documentTypes = [
-    { key: "construction_timesheet", label: "Construction Timesheet" },
+    { key: "construction_timesheet", label: "VENTILATIONS DES HEURES TRAVAILLEESsheet" },
     { key: "flash_mensuel", label: "Flash Mensuel" },
     { key: "recap_sortie_atelier", label: "Recap Sortie Atelier" },
     { key: "recap_sortie_chaudronnerie", label: "Recap Sortie Chaudronnerie" },
@@ -35,7 +35,7 @@ function ListePolesRemplis() {
   };
 
   const formTitles = {
-    construction_timesheet: "Construction Timesheet",
+    construction_timesheet: "VENTILATIONS DES HEURES TRAVAILLEESsheet",
     flash_mensuel: "Flash Mensuel",
     recap_sortie_atelier: "Recap Sortie Atelier",
     recap_sortie_chaudronnerie: "Recap Sortie Chaudronnerie",

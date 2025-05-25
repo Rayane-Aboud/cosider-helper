@@ -99,7 +99,7 @@ const ChefChantier = ({ userData, onLogout }) => {
   };
 
   const documentTypeNames = {
-    construction_timesheet: 'Construction Timesheet',
+    construction_timesheet: 'VENTILATIONS DES HEURES TRAVAILLEESsheet',
     flash_mensuel: 'Flash Mensuel',
     recap_sortie_atelier: 'Récap Sortie Atelier',
     recap_sortie_chaudronnerie: 'Récap Sortie Chaudronnerie',
@@ -313,7 +313,7 @@ const ChefChantier = ({ userData, onLogout }) => {
       return (
         <div>
           <button
-            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="mb-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-blue-700"
             onClick={() => setActiveView('historique')}
           >
             Retour à l'Historique
@@ -331,8 +331,7 @@ const ChefChantier = ({ userData, onLogout }) => {
     return (
       <>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-800">Notes D'information</h2>
-          <div className="flex items-center space-x-4">
+            <h2 className="text-lg font-semibold text-gray-800">Historique des Documents</h2>
             <div className="flex items-center">
               <div className="relative">
                 <input
@@ -346,75 +345,53 @@ const ChefChantier = ({ userData, onLogout }) => {
                   <Search className="w-4 h-4" />
                 </button>
               </div>
-              <button className="ml-2 px-3 py-2 text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition-colors text-sm">
-                Basculer vers dotNet
-              </button>
             </div>
-            <button className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors">
-              <Plus className="w-4 h-4 mr-2" />
-              Nouvelle Note
-            </button>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Référence
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Objet
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Pièce jointe
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Supprimer
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredNotes.map((note, index) => (
-                <tr 
-                  key={note.id}
-                  className={`hover:bg-gray-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  onClick={() => setSelectedNote(note)}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {note.reference}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {note.objet}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {note.date}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {note.pieceJointe && (
-                      <FileText className="w-5 h-5 text-blue-600" />
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors">
-                      Supprimé
-                    </button>
-                  </td>
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Référence
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date de Soumission
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredNotes.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
-            Aucune note trouvée pour "{searchTerm}"
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {documents.length > 0 ? (
+                  documents.map((doc, index) => (
+                    <tr 
+                      key={doc.id}
+                      className={`hover:bg-gray-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      onClick={() => handleViewDocument(doc)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {documentTypeNames[doc.type] || doc.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {doc.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(doc.data.mois, doc.data.month)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                      Aucun document trouvé{searchTerm ? ` pour "${searchTerm}"` : ''}.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
       </>
     );
   };
@@ -436,6 +413,17 @@ const ChefChantier = ({ userData, onLogout }) => {
 
         <nav className="py-4 flex flex-col h-[calc(100%-4rem)]">
           <div className="flex-1">
+          <MenuItem 
+                icon={Clock}
+                label="Historique"
+                onClick={() => {
+                  console.log('Clicked Historique');
+                  setSelectedForm(null);
+                  setSelectedDocument(null);
+                  setActiveView('historique');
+                  setSearchTerm('');
+                }}
+              />
             <MenuItem
               icon={File}
               label="Documents"
@@ -445,9 +433,9 @@ const ChefChantier = ({ userData, onLogout }) => {
             >
               <MenuItem
                 icon={FileText}
-                label="Construction Timesheet"
+                label="VENTILATIONS DES HEURES TRAVAILLEESsheet"
                 onClick={() => {
-                  console.log('Clicked Construction Timesheet');
+                  console.log('Clicked VENTILATIONS DES HEURES TRAVAILLEESsheet');
                   setSelectedForm('construction_timesheet');
                   setSelectedDocument(null);
                   setActiveView('form');
@@ -467,9 +455,9 @@ const ChefChantier = ({ userData, onLogout }) => {
               />
               <MenuItem
                 icon={FileText}
-                label="Recap Sortie Atelier"
+                label="Recap Sortie Atelier Armatures"
                 onClick={() => {
-                  console.log('Clicked Recap Sortie Atelier');
+                  console.log('Clicked Recap Sortie Atelier Armatures');
                   setSelectedForm('recap_sortie_atelier');
                   setSelectedDocument(null);
                   setActiveView('form');
@@ -498,19 +486,11 @@ const ChefChantier = ({ userData, onLogout }) => {
                   loadFormData('warehouse_inventory');
                 }}
               />
-              <MenuItem 
-                icon={Clock}
-                label="Historique"
-                onClick={() => {
-                  console.log('Clicked Historique');
-                  setSelectedForm(null);
-                  setSelectedDocument(null);
-                  setActiveView('historique');
-                  setSearchTerm('');
-                }}
-              />
+              
             </MenuItem>
+            
           </div>
+          
           <MenuItem 
             icon={LogOut}
             label="Déconnexion"
@@ -519,18 +499,18 @@ const ChefChantier = ({ userData, onLogout }) => {
         </nav>
       </div>
 
-      <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col">
         <div className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              
-              <div className="d-flex flex-column align-items-center text-center mx-auto">
-        <img className="cosider-logo" src="/Logo_Cosider.png" alt="Logo Cosider" />
-        <h2 className="cosider-title m-0">Application Suivi des données de Contrôle de gestion</h2>
-      </div>
+            <div className="flex justify-center w-full">
+              <div className="flex flex-col items-center text-center">
+                <img className="cosider-logo" src="/Logo_Cosider.png" alt="Logo Cosider" />
+                <h2 className="cosider-title m-0">Application Suivi des données de Contrôle de gestion</h2>
+              </div>
             </div>
-            <span class="text-sm text-gray-600">Chantier</span>
+            <span>Chef Chantier</span>
           </div>
+        
         </div>
 
         <div className="flex-1 p-6">

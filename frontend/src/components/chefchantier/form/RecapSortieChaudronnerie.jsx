@@ -139,7 +139,7 @@ export default function RecapSortieChaudronnerie({ formData: initialFormData, po
 
         {/* Title */}
         <div className="p-6 border-b-2 border-blue-600">
-          <h1 className="text-2xl font-bold">Recap Sortie Atelier de Chaudronnerie</h1>
+          <h1 className="text-2xl font-bold">Recap Sortie Atelier Armatures de Chaudronnerie</h1>
         </div>
 
         {/* Pole section */}

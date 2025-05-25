@@ -171,8 +171,7 @@ const WarehouseInventoryForm = ({ formData: initialFormData, poleCode, onSave })
         </div>
         
         <div className="text-center py-3 border-b border-black">
-          <h1 className="font-bold text-lg">SORTIES DU MAGASIN</h1>
-          <h2 className="font-bold text-lg">VERS LES STRUCTURES</h2>
+          <h1 className="font-bold text-lg">Warehouse inventory</h1>
         </div>
         
         <div className="flex border-b border-black">

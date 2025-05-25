@@ -80,7 +80,7 @@ function Dashboard({ setActiveView }) {
     return (
       <div className="dashboard p-4">
         <button
-          className="btn btn-secondary mb-4"
+          className="btn btn-outline-danger mb-4"
           onClick={() => handleViewChange("main")}
         >
           Retour au Tableau de Bord
@@ -94,7 +94,7 @@ function Dashboard({ setActiveView }) {
     return (
       <div className="dashboard p-4">
         <button
-          className="btn btn-secondary mb-4"
+          className="btn btn-outline-danger mb-4"
           onClick={() => handleViewChange("main")}
         >
           Retour au Tableau de Bord
