@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  Menu,
   BarChart2,
   Folder,
   User,
@@ -16,7 +17,7 @@ function Sidebar({ activeView, setActiveView, isVisible, onLogout }) {
     >
       <div>
         <div className="pt-4 pb-2 px-3">
-          <h5 className="text-white">Navigation</h5>
+          <Menu />
         </div>
 
         <ul className="nav nav-pills flex-column mb-auto">

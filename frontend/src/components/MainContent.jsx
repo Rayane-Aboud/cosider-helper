@@ -69,10 +69,20 @@ function MainContent({
       case 'settings':
         return (
           <Settings 
-            poles={poles} 
-            onSavePassword={onSavePassword} 
-            onAddPole={onAddPole} 
-            onDeletePole={onDeletePole} 
+            poles={poles.map(p => ({
+              id: p.code,      // <-- mapping pole code to id
+              name: p.name     // <-- mapping pole name to name
+            }))}
+            onSavePassword={onSavePassword}
+            onAddPole={(newPole) => {
+              const formattedPole = {
+                code: newPole.id,   // <-- reverse mapping
+                name: newPole.name,
+                password: newPole.password
+              };
+              onAddPole(formattedPole);
+            }}
+            onDeletePole={onDeletePole}
           />
         )
       default:

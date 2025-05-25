@@ -104,3 +104,41 @@ body {
     margin-left: 250px;
   }
 }
+
+.nav-pills .nav-link {
+  color: #333;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: #f8f9fa;
+}
+
+.nav-pills .nav-link.active {
+  background-color: #dc3545;
+  color: white;
+}
+
+.nav-icon {
+  margin-right: 0.5rem;
+}
+
+.nav-link .ms-auto {
+  margin-left: auto;
+}
+
+.nav .nav {
+  margin-left: 1.5rem;
+}
+
+.nav-link.text-danger {
+  color: #dc3545 !important;
+}
+
+.nav-link.text-danger:hover {
+  background-color: #f8d7da;
+}

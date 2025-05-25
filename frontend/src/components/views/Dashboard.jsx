@@ -1,58 +1,132 @@
-import React from 'react';
-import dayjs from 'dayjs';
-import { getPolesWithSubmissions } from '../../utils/data';
+"use client";
+
+import React, { useState, useEffect } from "react";
+import dayjs from "dayjs";
+import ListePolesRemplis from "./ListePolesRemplis";
+import ListePolesNonRemplis from "./ListePolesNonRemplis";
+import { poles, directors, getPolesWithSubmissions } from "../../utils/data";
 
 function Dashboard({ setActiveView }) {
-  const currentMonth = dayjs().month(); // 4 for May (0-based)
+  const [view, setView] = useState("main");
+  const [poleList, setPoleList] = useState([]);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const currentMonth = dayjs().month(); // 4 for May
   const currentYear = dayjs().year(); // 2025
-  const poles = getPolesWithSubmissions();
+  const monthName = dayjs().format("MMMM YYYY");
 
-  // Filter poles with submissions in the current month
-  const polesWithSubmissions = poles.filter((pole) => {
-    if (!pole.last_submission || pole.last_submission === 'Aucune') return false;
+  // Load poles
+  useEffect(() => {
+    console.log("Dashboard: Loading poles");
+    try {
+      if (!poles || !Array.isArray(poles)) {
+        throw new Error("Poles data is undefined or not an array");
+      }
+      const polesWithSubmissions = getPolesWithSubmissions();
+      console.log("Dashboard: Loaded poles", polesWithSubmissions);
+      setPoleList(polesWithSubmissions);
+      setError("");
+    } catch (err) {
+      setError("Erreur lors du chargement des pôles. Vérifiez data.js.");
+      console.error("Dashboard: Error loading poles:", err.message, err.stack);
+      setPoleList([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Filter poles
+  const polesWithSubmissions = poleList.filter((pole) => {
+    if (!pole.last_submission || pole.last_submission === "Aucune") return false;
     const submissionDate = dayjs(pole.last_submission);
-    return (
-      submissionDate.month() === currentMonth &&
-      submissionDate.year() === currentYear
-    );
+    return submissionDate.month() === currentMonth && submissionDate.year() === currentYear;
   });
 
-  // Poles without submissions this month
-  const polesWithoutSubmissions = poles.filter((pole) => {
-    if (!pole.last_submission || pole.last_submission === 'Aucune') return true;
+  const polesWithoutSubmissions = poleList.filter((pole) => {
+    if (!pole.last_submission || pole.last_submission === "Aucune") return true;
     const submissionDate = dayjs(pole.last_submission);
-    return (
-      submissionDate.month() !== currentMonth ||
-      submissionDate.year() !== currentYear
-    );
+    return submissionDate.month() !== currentMonth || submissionDate.year() !== currentYear;
   });
 
-  const monthName = dayjs().format('MMMM YYYY');
+  const handleViewChange = (newView) => {
+    console.log(`Dashboard: Switching to view ${newView}`);
+    setView(newView);
+  };
 
-  const handleViewChange = (view) => {
-    console.log(`setActiveView called with: ${view}`);
-    if (typeof setActiveView === 'function') {
-      setActiveView(view);
+  const handleSettingsClick = () => {
+    console.log("Dashboard: Navigating to settings");
+    if (typeof setActiveView === "function") {
+      setActiveView("settings");
     } else {
-      console.error('setActiveView is not a function:', setActiveView);
-      alert('Erreur: Impossible de changer de vue. Contactez le support.');
+      console.error("Dashboard: setActiveView is not a function", setActiveView);
+      alert("Erreur: Impossible de naviguer vers Paramètres.");
     }
   };
 
+  if (isLoading) {
+    return <div className="dashboard p-4">Chargement des données...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard p-4">
+        <div className="alert alert-danger">{error}</div>
+      </div>
+    );
+  }
+
+  if (view === "polesWithSubmissions") {
+    return (
+      <div className="dashboard p-4">
+        <button
+          className="btn btn-secondary mb-4"
+          onClick={() => handleViewChange("main")}
+        >
+          Retour au Tableau de Bord
+        </button>
+        <ListePolesRemplis />
+      </div>
+    );
+  }
+
+  if (view === "polesWithoutSubmissions") {
+    return (
+      <div className="dashboard p-4">
+        <button
+          className="btn btn-secondary mb-4"
+          onClick={() => handleViewChange("main")}
+        >
+          Retour au Tableau de Bord
+        </button>
+        <ListePolesNonRemplis />
+      </div>
+    );
+  }
+
   return (
-    <div className="dashboard">
+    <div className="dashboard p-4">
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <h2>Tableau de Bord</h2>
-        <h4 className="text-muted">{monthName}</h4>
+        <div>
+          <h4 className="text-muted d-inline-block me-3">{monthName}</h4>
+          <button
+            className="btn btn-secondary"
+            onClick={handleSettingsClick}
+          >
+            Paramètres
+          </button>
+        </div>
       </div>
 
       <div className="row">
         <div className="col-md-6 mb-4">
           <div
             className="card bg-success text-white h-100"
-            onClick={() => handleViewChange('polesWithSubmissions')}
+            onClick={() => handleViewChange("polesWithSubmissions")}
             role="button"
             aria-label="Voir les détails des pôles à jour"
+            style={{ cursor: "pointer" }}
           >
             <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
               <h1 className="display-1 mb-0">{polesWithSubmissions.length}</h1>
@@ -65,9 +139,10 @@ function Dashboard({ setActiveView }) {
         <div className="col-md-6 mb-4">
           <div
             className="card bg-danger text-white h-100"
-            onClick={() => handleViewChange('polesWithoutSubmissions')}
+            onClick={() => handleViewChange("polesWithoutSubmissions")}
             role="button"
             aria-label="Voir les détails des pôles en attente"
+            style={{ cursor: "pointer" }}
           >
             <div className="card-body d-flex flex-column align-items-center justify-content-center p-4">
               <h1 className="display-1 mb-0">{polesWithoutSubmissions.length}</h1>
@@ -84,12 +159,12 @@ function Dashboard({ setActiveView }) {
             <div className="card-body">
               <h5 className="card-title">Résumé</h5>
               <p className="card-text">
-                Total des pôles: <strong>{poles.length}</strong>
+                Total des pôles: <strong>{poleList.length}</strong>
                 <br />
-                Taux de conformité:{' '}
+                Taux de conformité:{" "}
                 <strong>
-                  {poles.length
-                    ? Math.round((polesWithSubmissions.length / poles.length) * 100)
+                  {poleList.length
+                    ? Math.round((polesWithSubmissions.length / poleList.length) * 100)
                     : 0}
                   %
                 </strong>
