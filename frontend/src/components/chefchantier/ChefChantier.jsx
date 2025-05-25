@@ -99,7 +99,7 @@ const ChefChantier = ({ userData, onLogout }) => {
   };
 
   const documentTypeNames = {
-    construction_timesheet: 'VENTILATIONS DES HEURES TRAVAILLEESsheet',
+    construction_timesheet: 'VENTILATIONS DES HEURES TRAVAILLEES',
     flash_mensuel: 'Flash Mensuel',
     recap_sortie_atelier: 'Récap Sortie Atelier',
     recap_sortie_chaudronnerie: 'Récap Sortie Chaudronnerie',
@@ -433,9 +433,9 @@ const ChefChantier = ({ userData, onLogout }) => {
             >
               <MenuItem
                 icon={FileText}
-                label="VENTILATIONS DES HEURES TRAVAILLEESsheet"
+                label="VENTILATIONS DES HEURES TRAVAILLEES"
                 onClick={() => {
-                  console.log('Clicked VENTILATIONS DES HEURES TRAVAILLEESsheet');
+                  console.log('Clicked VENTILATIONS DES HEURES TRAVAILLEES');
                   setSelectedForm('construction_timesheet');
                   setSelectedDocument(null);
                   setActiveView('form');
