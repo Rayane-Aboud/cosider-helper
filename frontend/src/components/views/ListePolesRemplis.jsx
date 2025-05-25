@@ -15,9 +15,9 @@ function ListePolesRemplis({ poles, directors }) {
     );
   });
 
-  const getDirectorName = (directorId) => {
-    const director = directors.find((dir) => dir.id === directorId);
-    return director ? director.name : 'Non assigné';
+  const getDirectorName = (directorName) => {
+    const director = directors.find((dir) => dir.nom === directorName);
+    return director ? director.nom : 'Non assigné';
   };
 
   const handlePrint = () => {
@@ -49,10 +49,10 @@ function ListePolesRemplis({ poles, directors }) {
           <tbody>
             {polesWithSubmissions.length > 0 ? (
               polesWithSubmissions.map((pole) => (
-                <tr key={pole.id}>
+                <tr key={pole.code}>
                   <td>{pole.code}</td>
-                  <td>{pole.title}</td>
-                  <td>{getDirectorName(pole.director_id)}</td>
+                  <td>{pole.intitule}</td>
+                  <td>{getDirectorName(pole.directeur)}</td>
                   <td>{pole.commune}</td>
                   <td>{pole.wilaya}</td>
                   <td>{dayjs(pole.last_submission).format('DD/MM/YYYY')}</td>
@@ -71,7 +71,7 @@ function ListePolesRemplis({ poles, directors }) {
 
       <div className="d-flex justify-content-end mt-3">
         <button
-          className="btn btn-primary"
+          className="btn btn-outline-danger"
           onClick={handlePrint}
           aria-label="Imprimer la liste des pôles à jour"
         >

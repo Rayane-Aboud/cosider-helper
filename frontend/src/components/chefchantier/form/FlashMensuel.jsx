@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function FlashMensuel() {
+export default function FlashMensuel({ formData: initialFormData, poleCode, onSave }) {
   const [formData, setFormData] = useState({
     intitule: '',
-    pole: '',
+    pole: poleCode || '',
     nt: '',
     mois: '',
     observations: '',
@@ -37,6 +37,87 @@ export default function FlashMensuel() {
     ferronnerieMenuiserie: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' }
   });
 
+  // Load initial data when component mounts or props change
+  useEffect(() => {
+    console.log('initialFormData:', initialFormData); // Debug: Log incoming data
+    console.log('poleCode:', poleCode); // Debug: Log poleCode
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      setFormData({
+        intitule: initialFormData.intitule || '',
+        pole: poleCode || initialFormData.pole || '',
+        nt: initialFormData.nt || '',
+        mois: initialFormData.mois || '',
+        observations: initialFormData.observations || '',
+        responsable: initialFormData.responsable || '',
+        date: initialFormData.date || '',
+        visa: initialFormData.visa || '',
+        travauxDivers: initialFormData.travauxDivers || ''
+      });
+
+      // Merge initial activities with default structure, ensuring all fields are strings
+      const mergedActivities = {};
+      Object.keys(activities).forEach(key => {
+        mergedActivities[key] = {
+          quantite: initialFormData.activities?.[key]?.quantite?.toString() || '',
+          valeurKDA: initialFormData.activities?.[key]?.valeurKDA?.toString() || '',
+          quantiteSupp: initialFormData.activities?.[key]?.quantiteSupp?.toString() || '',
+          valeurSupp: initialFormData.activities?.[key]?.valeurSupp?.toString() || '',
+          valPreste: initialFormData.activities?.[key]?.valPreste?.toString() || '',
+          valKDA: initialFormData.activities?.[key]?.valKDA?.toString() || ''
+        };
+      });
+      setActivities(mergedActivities);
+
+      // Merge initial equipments with default structure
+      const mergedEquipments = {};
+      Object.keys(equipments).forEach(key => {
+        mergedEquipments[key] = {
+          quantite: initialFormData.equipments?.[key]?.quantite?.toString() || '',
+          valeurKDA: initialFormData.equipments?.[key]?.valeurKDA?.toString() || '',
+          quantiteSupp: initialFormData.equipments?.[key]?.quantiteSupp?.toString() || '',
+          valeurSupp: initialFormData.equipments?.[key]?.valeurSupp?.toString() || '',
+          valPreste: initialFormData.equipments?.[key]?.valPreste?.toString() || '',
+          valKDA: initialFormData.equipments?.[key]?.valKDA?.toString() || ''
+        };
+      });
+      setEquipments(mergedEquipments);
+    } else {
+      setFormData({
+        intitule: '',
+        pole: poleCode || '',
+        nt: '',
+        mois: '',
+        observations: '',
+        responsable: '',
+        date: '',
+        visa: '',
+        travauxDivers: ''
+      });
+      setActivities({
+        terrassementsGeneraux: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        terrassementsParticuliers: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        beton: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        coffrage: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        ferraillage: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        maconnerie: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        endrobesNoirs: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        charpenteMetallique: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        forage: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' }
+      });
+      setEquipments({
+        chauffageClimatisation: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        traitementsFacades: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        revetements: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        plomberieSanitaire: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        electricite: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        etancheite: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        peinture: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        travauxBois: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' },
+        ferronnerieMenuiserie: { quantite: '', valeurKDA: '', quantiteSupp: '', valeurSupp: '', valPreste: '', valKDA: '' }
+      });
+    }
+  }, [initialFormData, poleCode]);
+
   const handleInputChange = (section, field, subfield, value) => {
     if (section === 'form') {
       setFormData(prev => ({ ...prev, [field]: value }));
@@ -50,6 +131,43 @@ export default function FlashMensuel() {
         ...prev,
         [field]: { ...prev[field], [subfield]: value }
       }));
+    }
+  };
+
+  const handleSave = () => {
+    // Validate required fields
+    if (!formData.pole || !formData.mois) {
+      alert('Veuillez remplir les champs Pôle et Mois.');
+      return;
+    }
+
+    // Prepare data to save
+    const dataToSave = {
+      intitule: formData.intitule,
+      pole: formData.pole,
+      nt: formData.nt,
+      mois: formData.mois,
+      observations: formData.observations,
+      responsable: formData.responsable,
+      date: formData.date,
+      visa: formData.visa,
+      travauxDivers: formData.travauxDivers,
+      activities: Object.fromEntries(
+        Object.entries(activities).filter(([_, values]) =>
+          Object.values(values).some(val => val !== '')
+        )
+      ),
+      equipments: Object.fromEntries(
+        Object.entries(equipments).filter(([_, values]) =>
+          Object.values(values).some(val => val !== '')
+        )
+      )
+    };
+
+    // Call onSave to add new document
+    if (onSave) {
+      console.log('Saving data:', dataToSave); // Debug: Log data being saved
+      onSave(dataToSave);
     }
   };
 
@@ -113,7 +231,7 @@ export default function FlashMensuel() {
       {/* Header */}
       <div className="border-2 border-black mb-4">
         <div className="bg-red-600 text-white px-3 py-1 text-sm font-bold flex justify-between items-center">
-          <span>cosidor</span>
+          <span>cosider</span>
           <span className="text-xs">Doc. 03</span>
         </div>
         
@@ -353,7 +471,15 @@ export default function FlashMensuel() {
             onChange={(e) => handleInputChange('form', 'travauxDivers', '', e.target.value)}
           />
         </p>
-        <p className="text-right mt-4 text-xs">PRO-04-ENR-10</p>
+        <div className="text-right mt-4">
+          <button
+            onClick={handleSave}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mr-4"
+          >
+            Save Flash Mensuel
+          </button>
+          <span className="text-xs">PRO-04-ENR-10</span>
+        </div>
       </div>
     </div>
   );

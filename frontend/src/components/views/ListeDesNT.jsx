@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import FormNT from '../forms/FormNT';
+import { nts, poles } from '../../utils/data';
 
-function ListeDesNT({ nts, poles, onAddNT }) {
+function ListeDesNT({ onAddNT }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
 
-  const filteredNTs = nts.filter((nt) =>
-    nt.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    nt.title.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredNTs = nts.filter(
+    (nt) =>
+      nt.nt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      nt.intituleNT.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleAddNT = (newNT) => {
@@ -15,13 +17,17 @@ function ListeDesNT({ nts, poles, onAddNT }) {
     setShowForm(false);
   };
 
-  const getPoleName = (poleId) => {
-    const pole = poles.find((pole) => pole.id === poleId);
-    return pole ? pole.title : 'Non associé';
+  const getPoleName = (poleCode) => {
+    const pole = poles.find((pole) => pole.code === poleCode);
+    return pole ? pole.intitule : 'Non associé';
   };
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
   };
 
   return (
@@ -42,9 +48,10 @@ function ListeDesNT({ nts, poles, onAddNT }) {
             <button
               className="btn btn-outline-secondary"
               type="button"
-              aria-label="Rechercher"
+              onClick={handleClearSearch}
+              aria-label="Effacer la recherche"
             >
-              🔍
+              ✕
             </button>
           </div>
         </div>
@@ -72,10 +79,18 @@ function ListeDesNT({ nts, poles, onAddNT }) {
           <tbody>
             {filteredNTs.length > 0 ? (
               filteredNTs.map((nt) => (
-                <tr key={nt.id}>
-                  <td>{getPoleName(nt.pole_id)}</td>
-                  <td>{nt.code}</td>
-                  <td>{nt.title}</td>
+                <tr key={nt.nt}>
+                  <td>
+                    {getPoleName(nt.pole)}
+                    {!poles.find((pole) => pole.code === nt.pole) && (
+                      <i
+                        className="bi bi-exclamation-triangle text-warning ms-2"
+                        title="Pôle non valide ou non associé"
+                      ></i>
+                    )}
+                  </td>
+                  <td>{nt.nt}</td>
+                  <td>{nt.intituleNT}</td>
                 </tr>
               ))
             ) : (
@@ -91,7 +106,7 @@ function ListeDesNT({ nts, poles, onAddNT }) {
 
       <div className="d-flex justify-content-end mt-3">
         <button
-          className="btn btn-primary"
+          className="btn btn-outline-danger"
           onClick={handlePrint}
           aria-label="Imprimer la liste des NT"
         >

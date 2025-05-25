@@ -1,25 +1,25 @@
 import React, { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import FormPole from '../forms/FormPole';
-import ConstructionTimesheet from '../chefchantier/form/ConstructionTimesheet'
-import FlashMensuel from '../chefchantier/form/FlashMensuel'
-import RecapSortieAtelier from '../chefchantier/form/RecapSortieAtelier'
-import RecapSortieChaudronnerie from '../chefchantier/form/RecapSortieChaudronnerie'
-import WarehouseInventoryForm from '../chefchantier/form/WarehouseInventoryForm'
+import ConstructionTimesheet from '../chefchantier/form/ConstructionTimesheet';
+import FlashMensuel from '../chefchantier/form/FlashMensuel';
+import RecapSortieAtelier from '../chefchantier/form/RecapSortieAtelier';
+import RecapSortieChaudronnerie from '../chefchantier/form/RecapSortieChaudronnerie';
+import WarehouseInventoryForm from '../chefchantier/form/WarehouseInventoryForm';
+import { poles, directors, getDocumentsByPole, addDocument } from '../../utils/data';
 
-
-function ListeDesPoles({ poles, directors, onAddPole }) {
+function ListeDesPoles({ onAddPole }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedForm, setSelectedForm] = useState(null);
   const [formData, setFormData] = useState(null);
-  const [selectedPoleId, setSelectedPoleId] = useState(null);
+  const [selectedPoleCode, setSelectedPoleCode] = useState(null);
 
   const filteredPoles = poles.filter(
     (pole) =>
       pole.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pole.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pole.intitule.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pole.commune.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pole.wilaya.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -29,9 +29,9 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
     setShowForm(false);
   };
 
-  const getDirectorName = (directorId) => {
-    const director = directors?.find((dir) => dir.id === directorId) || {};
-    return director.name || 'Non assigné';
+  const getDirectorName = (directorName) => {
+    const director = directors.find((d) => d.nom === directorName);
+    return director ? director.nom : 'Non assigné';
   };
 
   const handlePrint = () => {
@@ -43,69 +43,68 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
   };
 
   const formComponents = {
-    constructionTimesheet: ConstructionTimesheet,
-    flashMensuel: FlashMensuel,
-    recapSortieAtelier: RecapSortieAtelier,
-    recapSortieChaudronnerie: RecapSortieChaudronnerie,
-    warehouseInventoryForm: WarehouseInventoryForm,
-  };
-
-  const formEndpoints = {
-    constructionTimesheet: 'constructiontimesheet',
-    flashMensuel: 'flashmensuel',
-    recapSortieAtelier: 'recapsortieatelier',
-    recapSortieChaudronnerie: 'recapsortiechaudronnerie',
-    warehouseInventoryForm: 'warehouseinventoryform',
+    construction_timesheet: ConstructionTimesheet,
+    flash_mensuel: FlashMensuel,
+    recap_sortie_atelier: RecapSortieAtelier,
+    recap_sortie_chaudronnerie: RecapSortieChaudronnerie,
+    warehouse_inventory: WarehouseInventoryForm,
   };
 
   const formTitles = {
-    constructionTimesheet: 'Construction Timesheet',
-    flashMensuel: 'Flash Mensuel',
-    recapSortieAtelier: 'Recap Sortie Atelier',
-    recapSortieChaudronnerie: 'Recap Sortie Chaudronnerie',
-    warehouseInventoryForm: 'Warehouse Inventory',
+    construction_timesheet: 'Construction Timesheet',
+    flash_mensuel: 'Flash Mensuel',
+    recap_sortie_atelier: 'Recap Sortie Atelier',
+    recap_sortie_chaudronnerie: 'Recap Sortie Chaudronnerie',
+    warehouse_inventory: 'Warehouse Inventory',
   };
 
   const formColors = {
-    constructionTimesheet: 'blue',
-    flashMensuel: 'green',
-    recapSortieAtelier: 'red',
-    recapSortieChaudronnerie: 'yellow',
-    warehouseInventoryForm: 'purple',
+    construction_timesheet: 'blue',
+    flash_mensuel: 'green',
+    recap_sortie_atelier: 'red',
+    recap_sortie_chaudronnerie: 'yellow',
+    warehouse_inventory: 'purple',
   };
 
-  const loadFormData = async (formType, poleId) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/load-${formEndpoints[formType]}?pole_id=${poleId}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to load form data');
-      }
-      const data = await response.json();
-      setFormData(data);
-    } catch (error) {
-      console.error('Error loading form data:', error);
-      setFormData(null);
-      alert('Failed to load form data');
-    }
+  const loadFormData = (formType, poleCode) => {
+    const poleDocs = getDocumentsByPole(poleCode);
+    console.log('poleDocs:', poleDocs); // Debug: Log documents for pole
+    const formDocs = poleDocs.filter(doc => doc.type === formType);
+    console.log('formDocs:', formDocs); // Debug: Log filtered documents
+    // Sort by docId (assuming higher IDs are more recent)
+    const latestDoc = formDocs.sort((a, b) => b.id.localeCompare(a.id))[0];
+    console.log('latestDoc:', latestDoc); // Debug: Log latest document
+    setFormData(latestDoc ? latestDoc.data : {});
+    return latestDoc ? latestDoc.id : null;
   };
 
-  const handleDocumentClick = (formType, poleId) => {
+  const handleDocumentClick = (formType, poleCode) => {
     setSelectedForm(formType);
-    setSelectedPoleId(poleId);
-    loadFormData(formType, poleId);
+    setSelectedPoleCode(poleCode);
+    const docId = loadFormData(formType, poleCode);
+    if (!docId) {
+      console.log(`No ${formType} document found for pole ${poleCode}. Loading empty form.`);
+    }
     setShowModal(true);
+  };
+
+  const handleSave = (updatedData) => {
+    const docId = `doc_${Date.now()}`;
+    addDocument({
+      id: docId,
+      type: selectedForm,
+      pole: selectedPoleCode,
+      data: updatedData,
+    });
+    setFormData(updatedData);
+    alert('Nouveau document ajouté avec succès !');
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
     setSelectedForm(null);
     setFormData(null);
-    setSelectedPoleId(null);
+    setSelectedPoleCode(null);
   };
 
   return (
@@ -160,10 +159,18 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
           <tbody>
             {filteredPoles.length > 0 ? (
               filteredPoles.map((pole) => (
-                <tr key={pole.id}>
+                <tr key={pole.code}>
                   <td>{pole.code}</td>
-                  <td>{pole.title}</td>
-                  <td>{getDirectorName(pole.director_id)}</td>
+                  <td>{pole.intitule}</td>
+                  <td>
+                    {getDirectorName(pole.directeur)}
+                    {!directors.find((d) => d.nom === pole.directeur) && (
+                      <i
+                        className="bi bi-exclamation-triangle text-warning ms-2"
+                        title="Aucun directeur assigné ou directeur non valide"
+                      ></i>
+                    )}
+                  </td>
                   <td>{pole.commune}</td>
                   <td>{pole.wilaya}</td>
                   <td>
@@ -173,8 +180,8 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
                           key={formType}
                           className="btn btn-sm"
                           style={{ backgroundColor: formColors[formType], color: 'white' }}
-                          onClick={() => handleDocumentClick(formType, pole.id)}
-                          aria-label={`Voir ${formTitles[formType]} pour ${pole.title}`}
+                          onClick={() => handleDocumentClick(formType, pole.code)}
+                          aria-label={`Voir ${formTitles[formType]} pour ${pole.intitule}`}
                           title={formTitles[formType]}
                         >
                           <i className="bi bi-file-earmark-text"></i>
@@ -196,7 +203,7 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
       </div>
 
       <div className="d-flex justify-content-end mt-3">
-        <button className="btn btn-primary" onClick={handlePrint}>
+        <button className="btn btn-outline-danger" onClick={handlePrint}>
           Imprimer
         </button>
       </div>
@@ -213,13 +220,17 @@ function ListeDesPoles({ poles, directors, onAddPole }) {
           <Modal.Title>{selectedForm ? formTitles[selectedForm] : 'Loading...'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {selectedForm && formData ? (
+          {selectedForm && selectedPoleCode && (
             (() => {
               const FormComponent = formComponents[selectedForm];
-              return <FormComponent formData={formData} poleId={selectedPoleId} />;
+              return (
+                <FormComponent 
+                  formData={formData} 
+                  poleCode={selectedPoleCode} 
+                  onSave={handleSave}
+                />
+              );
             })()
-          ) : (
-            <p>Loading form data...</p>
           )}
         </Modal.Body>
         <Modal.Footer>

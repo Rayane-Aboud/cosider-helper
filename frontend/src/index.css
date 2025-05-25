@@ -13,8 +13,8 @@ body {
 
 .sidebar {
   width: 250px;
-  background-color: #343a40;
-  color: white;
+  background-color: #ffffff; /* white background */
+  color: #212529; /* dark text */
   position: fixed;
   height: 100vh;
   z-index: 100;
@@ -55,13 +55,12 @@ body {
 }
 
 .nav-link {
-  color: rgba(255, 255, 255, 0.8);
+  color: #343a40; /* dark gray */
   transition: all 0.3s;
 }
-
 .nav-link:hover {
   background-color: rgba(220, 53, 69, 0.2);
-  color: white;
+  color: black;
 }
 
 .nav-icon {

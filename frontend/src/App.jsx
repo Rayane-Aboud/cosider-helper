@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Header from "./components/Header.jsx"
 import Sidebar from "./components/Sidebar.jsx"
 import MainContent from "./components/MainContent.jsx"
-import ChefChantier from "./components/chefchantier/ChefChantier.jsx" // Import your second component
+import ChefChantier from "./components/chefchantier/ChefChantier.jsx"
 import LoginPage from "./components/LoginPage.jsx"
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -34,20 +34,27 @@ function App() {
   const [nts, setNTs] = useState([])
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [userType, setUserType] = useState(null) // Track user type
-  const [userData, setUserData] = useState(null) // Store user data
+  const [userType, setUserType] = useState(null)
+  const [userData, setUserData] = useState(null)
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUserType = localStorage.getItem('userType');
     const storedUserData = localStorage.getItem('userData');
     
+    console.log('App useEffect:', { token, storedUserType, storedUserData });
+
     if (token && storedUserType) {
+      const parsedUserData = storedUserData ? JSON.parse(storedUserData) : null;
+      if (storedUserType === 'pole' && (!parsedUserData || !parsedUserData.code)) {
+        console.warn('Invalid pole userData, redirecting to login');
+        handleLogout();
+        return;
+      }
       setIsAuthenticated(true);
       setUserType(storedUserType);
-      setUserData(storedUserData ? JSON.parse(storedUserData) : null);
+      setUserData(parsedUserData);
       
-      // Only fetch data for admin users
       if (storedUserType === 'admin') {
         Promise.all([fetchPoles(), fetchDirectors(), fetchNTs()])
           .catch(error => console.error('Failed to fetch data:', error));
@@ -178,6 +185,11 @@ function App() {
   }
 
   const handleLogin = (loginData) => {
+    console.log('App handleLogin:', loginData);
+    if (loginData.userType === 'pole' && (!loginData.poleData || !loginData.poleData.code)) {
+      console.error('Invalid pole login data');
+      return;
+    }
     const staticToken = 'my_static_app_token_123'
     localStorage.setItem('token', staticToken)
     localStorage.setItem('userType', loginData.userType)
@@ -187,7 +199,6 @@ function App() {
     setUserType(loginData.userType)
     setUserData(loginData.poleData || null)
     
-    // Only fetch data for admin users
     if (loginData.userType === 'admin') {
       fetchPoles()
       fetchDirectors()
@@ -196,6 +207,7 @@ function App() {
   }
 
   const handleLogout = () => {
+    console.log('App handleLogout');
     localStorage.removeItem('token')
     localStorage.removeItem('userType')
     localStorage.removeItem('userData')
@@ -205,12 +217,10 @@ function App() {
     setActiveView("dashboard")
   }
 
-  // Render based on authentication and user type
-  if (!isAuthenticated) {
+  if (!isAuthenticated || (userType === 'pole' && (!userData || !userData.code))) {
     return <LoginPage onLogin={handleLogin} />
   }
 
-  // Render admin interface
   if (userType === 'admin') {
     return (
       <div className="app-container">
@@ -239,12 +249,10 @@ function App() {
     )
   }
 
-  // Render pole interface (Medical Work Tracker)
   if (userType === 'pole') {
-    return <ChefChantier userData={userData} onLogout={handleLogout} />
+    return <ChefChantier userData={{ userType: 'pole', poleData: userData }} onLogout={handleLogout} />
   }
 
-  // Fallback (shouldn't reach here)
   return <LoginPage onLogin={handleLogin} />
 }
 

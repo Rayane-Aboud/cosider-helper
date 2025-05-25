@@ -1,42 +1,61 @@
-import React, { useState } from 'react'
 
-function FormDirecteur({ show, onHide, onSave, poles }) {
+import React, { useState } from 'react';
+import { addDirector } from '../../utils/data';
+
+function FormDirecteur({ show, onHide, poles }) {
   const [formData, setFormData] = useState({
-    name: '',
+    nom: '',
     email: '',
-    phone: '',
-    associatedPoles: []
-  })
-  
+    telephone: '',
+    polesAssocies: []
+  });
+
+  const [error, setError] = useState(null);
+
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value
-    })
-  }
-  
+    });
+  };
+
   const handlePoleSelection = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value)
+    const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
     setFormData({
       ...formData,
-      associatedPoles: selectedOptions
-    })
-  }
-  
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave(formData)
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      associatedPoles: []
-    })
-  }
+      polesAssocies: selectedOptions
+    });
+  };
 
-  if (!show) return null
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      const submissionData = {
+        nom: formData.nom,
+        email: formData.email,
+        telephone: formData.telephone,
+        polesAssocies: formData.polesAssocies
+      };
+
+      addDirector(submissionData);
+
+      setFormData({
+        nom: '',
+        email: '',
+        telephone: '',
+        polesAssocies: []
+      });
+      alert('Directeur ajouté avec succès !');
+      onHide();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de l\'enregistrement du directeur');
+    }
+  };
+
+  if (!show) return null;
 
   return (
     <>
@@ -45,80 +64,89 @@ function FormDirecteur({ show, onHide, onSave, poles }) {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Nouveau Directeur</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
+              <button
+                type="button"
+                className="btn-close"
                 onClick={onHide}
               ></button>
             </div>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
+                {error && (
+                  <div className="alert alert-danger mb-3">
+                    {error}
+                  </div>
+                )}
+
                 <div className="mb-3">
-                  <label htmlFor="name" className="form-label">Nom</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="name" 
-                    name="name"
-                    value={formData.name}
+                  <label htmlFor="nom" className="form-label">Nom</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="nom"
+                    name="nom"
+                    value={formData.nom}
                     onChange={handleChange}
                     required
+                    placeholder="Ex: Ahmed Zitouni"
                   />
                 </div>
-                
+
                 <div className="mb-3">
                   <label htmlFor="email" className="form-label">Email</label>
-                  <input 
-                    type="email" 
-                    className="form-control" 
-                    id="email" 
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
                     required
+                    placeholder="Ex: ahmed.z@entreprise.dz"
                   />
                 </div>
-                
+
                 <div className="mb-3">
-                  <label htmlFor="phone" className="form-label">Téléphone</label>
-                  <input 
-                    type="tel" 
-                    className="form-control" 
-                    id="phone" 
-                    name="phone"
-                    value={formData.phone}
+                  <label htmlFor="telephone" className="form-label">Téléphone</label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    id="telephone"
+                    name="telephone"
+                    value={formData.telephone}
                     onChange={handleChange}
                     required
+                    placeholder="Ex: +213 555 666 777"
                   />
                 </div>
-                
+
                 <div className="mb-3">
-                  <label htmlFor="associatedPoles" className="form-label">
+                  <label htmlFor="polesAssocies" className="form-label">
                     Pôles associés (maintenir Ctrl pour sélectionner plusieurs)
                   </label>
-                  <select 
-                    className="form-select" 
-                    id="associatedPoles" 
-                    name="associatedPoles"
+                  <select
+                    className="form-select"
+                    id="polesAssocies"
+                    name="polesAssocies"
                     multiple
-                    value={formData.associatedPoles}
+                    value={formData.polesAssocies}
                     onChange={handlePoleSelection}
                     size="5"
                   >
                     {poles.map(pole => (
-                      <option key={pole.id} value={pole.id}>
-                        {pole.title}
+                      <option key={pole.code} value={pole.code}>
+                        {pole.intitule}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
-              
+
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={onHide}
                 >
                   Annuler
@@ -130,7 +158,7 @@ function FormDirecteur({ show, onHide, onSave, poles }) {
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default FormDirecteur
+export default FormDirecteur;

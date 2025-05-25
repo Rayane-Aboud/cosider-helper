@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const WarehouseInventoryForm = () => {
+const WarehouseInventoryForm = ({ formData: initialFormData, poleCode, onSave }) => {
   const [formData, setFormData] = useState({
-    pole: '',
+    pole: poleCode || '',
     month: '',
     entries: {}
   });
@@ -97,6 +97,27 @@ const WarehouseInventoryForm = () => {
     }
   ];
 
+  // Load initial data when component mounts or props change
+  useEffect(() => {
+    console.log('initialFormData:', initialFormData); // Debug: Log incoming data
+    console.log('poleCode:', poleCode); // Debug: Log poleCode
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      setFormData({
+        pole: poleCode || initialFormData.pole || '',
+        month: initialFormData.month || '',
+        entries: Object.fromEntries(
+          Object.entries(initialFormData.entries || {}).map(([key, value]) => [key, value.toString()])
+        )
+      });
+    } else {
+      setFormData({
+        pole: poleCode || '',
+        month: '',
+        entries: {}
+      });
+    }
+  }, [initialFormData, poleCode]);
+
   const handleInputChange = (category, item, field, value) => {
     const key = `${category}_${item}_${field}`;
     setFormData(prev => ({
@@ -113,6 +134,29 @@ const WarehouseInventoryForm = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleSave = () => {
+    // Validate required fields
+    if (!formData.pole || !formData.month) {
+      alert('Veuillez remplir les champs Pôle et Mois.');
+      return;
+    }
+
+    // Prepare data to save
+    const dataToSave = {
+      pole: formData.pole,
+      month: formData.month,
+      entries: Object.fromEntries(
+        Object.entries(formData.entries).map(([key, value]) => [key, parseFloat(value) || 0])
+      )
+    };
+
+    // Call onSave to add new document
+    if (onSave) {
+      console.log('Saving data:', dataToSave); // Debug: Log data being saved
+      onSave(dataToSave);
+    }
   };
 
   return (
@@ -232,7 +276,13 @@ const WarehouseInventoryForm = () => {
       </div>
 
       {/* Footer */}
-      <div className="mt-4 text-right">
+      <div className="mt-4 flex justify-between items-center">
+        <button
+          onClick={handleSave}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Save Warehouse Inventory
+        </button>
         <span className="text-sm font-mono bg-gray-100 px-2 py-1 border">PRO.04-ENR.10</span>
       </div>
     </div>

@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function RecapSortieChaudronnerie() {
+export default function RecapSortieChaudronnerie({ formData: initialFormData, poleCode, onSave }) {
   const [formData, setFormData] = useState({
     mois: '',
-    pole: '',
+    pole: poleCode || '',
     atelierMecanique: '',
     atelierPrefa: '',
     clientExterne: ''
@@ -12,6 +12,59 @@ export default function RecapSortieChaudronnerie() {
   const [codesNTRows, setCodesNTRows] = useState(Array(8).fill().map(() => ({ code: '' })));
   const [travauxDiversRows, setTravauxDiversRows] = useState(Array(8).fill().map(() => ({ travaux: '' })));
   const [travauxMetalliquesRows, setTravauxMetalliquesRows] = useState(Array(8).fill().map(() => ({ travaux: '' })));
+
+  // Load initial data when component mounts or props change
+  useEffect(() => {
+    console.log('initialFormData:', initialFormData); // Debug: Log incoming data
+    console.log('poleCode:', poleCode); // Debug: Log poleCode
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      setFormData({
+        mois: initialFormData.mois || '',
+        pole: poleCode || initialFormData.pole || '',
+        atelierMecanique: initialFormData.atelierMecanique?.toString() || '',
+        atelierPrefa: initialFormData.atelierPrefa?.toString() || '',
+        clientExterne: initialFormData.clientExterne?.toString() || ''
+      });
+
+      // Initialize codesNTRows
+      const initialCodesNT = initialFormData.codesNT
+        ? [
+            ...initialFormData.codesNT.map(code => ({ code: code || '' })),
+            ...Array(8 - (initialFormData.codesNT.length || 0)).fill().map(() => ({ code: '' }))
+          ]
+        : Array(8).fill().map(() => ({ code: '' }));
+      setCodesNTRows(initialCodesNT);
+
+      // Initialize travauxDiversRows
+      const initialTravauxDivers = initialFormData.travauxDivers
+        ? [
+            ...initialFormData.travauxDivers.map(travaux => ({ travaux: travaux || '' })),
+            ...Array(8 - (initialFormData.travauxDivers.length || 0)).fill().map(() => ({ travaux: '' }))
+          ]
+        : Array(8).fill().map(() => ({ travaux: '' }));
+      setTravauxDiversRows(initialTravauxDivers);
+
+      // Initialize travauxMetalliquesRows
+      const initialTravauxMetalliques = initialFormData.travauxMetalliques
+        ? [
+            ...initialFormData.travauxMetalliques.map(travaux => ({ travaux: travaux || '' })),
+            ...Array(8 - (initialFormData.travauxMetalliques.length || 0)).fill().map(() => ({ travaux: '' }))
+          ]
+        : Array(8).fill().map(() => ({ travaux: '' }));
+      setTravauxMetalliquesRows(initialTravauxMetalliques);
+    } else {
+      setFormData({
+        mois: '',
+        pole: poleCode || '',
+        atelierMecanique: '',
+        atelierPrefa: '',
+        clientExterne: ''
+      });
+      setCodesNTRows(Array(8).fill().map(() => ({ code: '' })));
+      setTravauxDiversRows(Array(8).fill().map(() => ({ travaux: '' })));
+      setTravauxMetalliquesRows(Array(8).fill().map(() => ({ travaux: '' })));
+    }
+  }, [initialFormData, poleCode]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -33,6 +86,32 @@ export default function RecapSortieChaudronnerie() {
     const newRows = [...travauxMetalliquesRows];
     newRows[index] = { travaux: value };
     setTravauxMetalliquesRows(newRows);
+  };
+
+  const handleSave = () => {
+    // Validate required fields
+    if (!formData.pole || !formData.mois) {
+      alert('Veuillez remplir les champs Pôle et Mois.');
+      return;
+    }
+
+    // Prepare data to save
+    const dataToSave = {
+      mois: formData.mois,
+      pole: formData.pole,
+      atelierMecanique: parseFloat(formData.atelierMecanique) || 0,
+      atelierPrefa: parseFloat(formData.atelierPrefa) || 0,
+      clientExterne: parseFloat(formData.clientExterne) || 0,
+      codesNT: codesNTRows.map(row => row.code).filter(code => code),
+      travauxDivers: travauxDiversRows.map(row => row.travaux).filter(travaux => travaux),
+      travauxMetalliques: travauxMetalliquesRows.map(row => row.travaux).filter(travaux => travaux)
+    };
+
+    // Call onSave to add new document
+    if (onSave) {
+      console.log('Saving data:', dataToSave); // Debug: Log data being saved
+      onSave(dataToSave);
+    }
   };
 
   return (
@@ -206,7 +285,6 @@ export default function RecapSortieChaudronnerie() {
             TOTAL
           </div>
           <div className="w-1/2 p-3 text-center font-bold">
-            {/* Auto-calculate total */}
             {(
               (parseFloat(formData.atelierMecanique) || 0) +
               (parseFloat(formData.atelierPrefa) || 0) +
@@ -216,8 +294,14 @@ export default function RecapSortieChaudronnerie() {
         </div>
 
         {/* Footer */}
-        <div className="bg-blue-50 p-2 text-right text-sm">
-          PRO-04-ENR-10
+        <div className="bg-blue-50 p-2 flex justify-between items-center">
+          <button
+            onClick={handleSave}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Save Recap Sortie Chaudronnerie
+          </button>
+          <span className="text-sm">PRO-04-ENR-10</span>
         </div>
       </div>
     </div>

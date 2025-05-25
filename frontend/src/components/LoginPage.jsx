@@ -5,6 +5,7 @@ import { Container, Row, Col, Form, Button, Image, Alert } from "react-bootstrap
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "./LoginPage.css"
+import { poles } from "../utils/data" // Import poles from data.js
 
 export default function LoginPage({ onLogin }) {
   const [validated, setValidated] = useState(false)
@@ -12,7 +13,7 @@ export default function LoginPage({ onLogin }) {
   const [loginError, setLoginError] = useState(false)
   const [errorMessage, setErrorMessage] = useState("Identifiants incorrects. Veuillez réessayer.")
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault()
     const form = event.currentTarget
 
@@ -25,6 +26,8 @@ export default function LoginPage({ onLogin }) {
     const codeRole = form.codeRole.value
     const password = form.password.value
 
+    /* */
+
     console.log("Login attempt with:", { codeRole, password })
 
     // Check for admin login
@@ -32,36 +35,20 @@ export default function LoginPage({ onLogin }) {
       onLogin({ userType: 'admin' })
       setLoginError(false)
     } 
-    // Check for pole login
-    else if (codeRole === 'pole' && password === 'cosider2025') {
-      onLogin({ userType: 'pole', poleData: { name: 'Pole User', code: 'pole' } })
+    /* */
+
+    console.log("Login attempt with:", { codeRole, password })
+
+    // Check for pole login using data.js
+    const pole = poles.find(p => p.code === codeRole && p.password === password)
+    
+    if (pole) {
+      onLogin({ userType: 'pole', poleData: pole })
       setLoginError(false)
-    } 
-    else {
-      // If neither admin nor pole with correct credentials, try API call for other pole logins
-      try {
-        const response = await fetch('/api/pole-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ poleCode: codeRole, password })
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          onLogin({ userType: 'pole', poleData: data.pole })
-          setLoginError(false)
-        } else {
-          const data = await response.json()
-          setErrorMessage(data.message || 'Identifiants incorrects. Veuillez réessayer.')
-          setLoginError(true)
-          setTimeout(() => setLoginError(false), 3000)
-        }
-      } catch (error) {
-        console.error('Error during pole login:', error)
-        setErrorMessage('Erreur de connexion. Veuillez réessayer.')
-        setLoginError(true)
-        setTimeout(() => setLoginError(false), 3000)
-      }
+    } else {
+      setErrorMessage('Code pôle ou mot de passe incorrect. Veuillez réessayer.')
+      setLoginError(true)
+      setTimeout(() => setLoginError(false), 3000)
     }
 
     setValidated(true)
@@ -89,9 +76,9 @@ export default function LoginPage({ onLogin }) {
 
             <Form noValidate validated={validated} onSubmit={handleSubmit}>
               <Form.Group className="mb-4" controlId="codeRole">
-                <Form.Label className="form-label">Utilisateur</Form.Label>
-                <Form.Control required type="text" placeholder="Entrez votre code utilisateur" className="form-input" />
-                <Form.Control.Feedback type="invalid">Veuillez entrer votre code utilisateur.</Form.Control.Feedback>
+                <Form.Label className="form-label">Code Pôle</Form.Label>
+                <Form.Control required type="text" placeholder="Entrez votre code pôle (ex. P101)" className="form-input" />
+                <Form.Control.Feedback type="invalid">Veuillez entrer votre code pôle.</Form.Control.Feedback>
               </Form.Group>
 
               <Form.Group className="mb-4" controlId="password">

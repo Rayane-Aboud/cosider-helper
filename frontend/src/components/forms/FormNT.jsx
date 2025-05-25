@@ -1,32 +1,49 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { addNT } from '../../utils/data';
 
-function FormNT({ show, onHide, onSave, poles }) {
+function FormNT({ show, onHide, poles }) {
   const [formData, setFormData] = useState({
-    poleId: '',
-    code: '',
-    title: ''
-  })
-  
+    pole: '',
+    nt: '',
+    intituleNT: ''
+  });
+
+  const [error, setError] = useState(null);
+
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value
-    })
-  }
-  
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    onSave(formData)
-    // Reset form
-    setFormData({
-      poleId: '',
-      code: '',
-      title: ''
-    })
-  }
+    });
+  };
 
-  if (!show) return null
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      const submissionData = {
+        pole: formData.pole,
+        nt: formData.nt,
+        intituleNT: formData.intituleNT
+      };
+
+      addNT(submissionData);
+
+      setFormData({
+        pole: '',
+        nt: '',
+        intituleNT: ''
+      });
+      alert('NT ajouté avec succès !');
+      onHide();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de l\'enregistrement du NT');
+    }
+  };
+
+  if (!show) return null;
 
   return (
     <>
@@ -35,65 +52,73 @@ function FormNT({ show, onHide, onSave, poles }) {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Nouveau NT</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
+              <button
+                type="button"
+                className="btn-close"
                 onClick={onHide}
               ></button>
             </div>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
+                {error && (
+                  <div className="alert alert-danger mb-3">
+                    {error}
+                  </div>
+                )}
+
                 <div className="mb-3">
-                  <label htmlFor="poleId" className="form-label">Pôle</label>
-                  <select 
-                    className="form-select" 
-                    id="poleId" 
-                    name="poleId"
-                    value={formData.poleId}
+                  <label htmlFor="pole" className="form-label">Pôle</label>
+                  <select
+                    className="form-select"
+                    id="pole"
+                    name="pole"
+                    value={formData.pole}
                     onChange={handleChange}
                     required
                   >
                     <option value="">Sélectionner un pôle</option>
                     {poles.map(pole => (
-                      <option key={pole.id} value={pole.id}>
-                        {pole.title}
+                      <option key={pole.code} value={pole.code}>
+                        {pole.intitule}
                       </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="mb-3">
-                  <label htmlFor="code" className="form-label">NT</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="code" 
-                    name="code"
-                    value={formData.code}
+                  <label htmlFor="nt" className="form-label">NT</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="nt"
+                    name="nt"
+                    value={formData.nt}
                     onChange={handleChange}
                     required
+                    placeholder="Ex: NT-2025-102"
                   />
                 </div>
-                
+
                 <div className="mb-3">
-                  <label htmlFor="title" className="form-label">Intitulé NT</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="title" 
-                    name="title"
-                    value={formData.title}
+                  <label htmlFor="intituleNT" className="form-label">Intitulé NT</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="intituleNT"
+                    name="intituleNT"
+                    value={formData.intituleNT}
                     onChange={handleChange}
                     required
+                    placeholder="Ex: Normes Construction"
                   />
                 </div>
               </div>
-              
+
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={onHide}
                 >
                   Annuler
@@ -105,7 +130,7 @@ function FormNT({ show, onHide, onSave, poles }) {
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default FormNT
+export default FormNT;

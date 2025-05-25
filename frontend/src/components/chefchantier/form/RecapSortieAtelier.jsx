@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function RecapSortieAtelier() {
+export default function RecapSortieAtelier({ formData: initialFormData, poleCode, onSave }) {
   const [formData, setFormData] = useState({
     mois: '',
-    pole: '',
+    pole: poleCode || '',
     atelierPrefa: '',
     installations: '',
     codesNT: '',
@@ -12,6 +12,56 @@ export default function RecapSortieAtelier() {
   });
 
   const [rows, setRows] = useState(Array(12).fill().map(() => ({ destination: '', armatures: '' })));
+
+  // Load initial data when component mounts or props change
+  useEffect(() => {
+    console.log('initialFormData:', initialFormData); // Debug: Log incoming data
+    console.log('poleCode:', poleCode); // Debug: Log poleCode
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      setFormData({
+        mois: initialFormData.mois || '',
+        pole: poleCode || initialFormData.pole || '',
+        atelierPrefa: initialFormData.atelierPrefa?.toString() || '',
+        installations: initialFormData.installations?.toString() || '',
+        codesNT: initialFormData.codesNT || '',
+        clientExterne: initialFormData.clientExterne?.toString() || '',
+        total: initialFormData.total?.toString() || 0
+      });
+
+      // Initialize rows with destinations, filling remaining with empty objects
+      const initialRows = initialFormData.destinations
+        ? [
+            ...initialFormData.destinations.map(dest => ({
+              destination: dest.destination || '',
+              armatures: dest.armatures?.toString() || ''
+            })),
+            ...Array(12 - (initialFormData.destinations.length || 0)).fill().map(() => ({
+              destination: '',
+              armatures: ''
+            }))
+          ]
+        : Array(12).fill().map(() => ({ destination: '', armatures: '' }));
+      setRows(initialRows);
+
+      // Calculate total
+      const total = initialRows.reduce((sum, row) => {
+        const armatureValue = parseFloat(row.armatures) || 0;
+        return sum + armatureValue;
+      }, 0);
+      setFormData(prev => ({ ...prev, total }));
+    } else {
+      setFormData({
+        mois: '',
+        pole: poleCode || '',
+        atelierPrefa: '',
+        installations: '',
+        codesNT: '',
+        clientExterne: '',
+        total: 0
+      });
+      setRows(Array(12).fill().map(() => ({ destination: '', armatures: '' })));
+    }
+  }, [initialFormData, poleCode]);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -29,6 +79,32 @@ export default function RecapSortieAtelier() {
     }, 0);
     
     setFormData(prev => ({ ...prev, total }));
+  };
+
+  const handleSave = () => {
+    // Validate required fields
+    if (!formData.pole || !formData.mois) {
+      alert('Veuillez remplir les champs Pôle et Mois.');
+      return;
+    }
+
+    // Prepare data to save
+    const dataToSave = {
+      mois: formData.mois,
+      pole: formData.pole,
+      atelierPrefa: parseFloat(formData.atelierPrefa) || 0,
+      installations: parseFloat(formData.installations) || 0,
+      codesNT: formData.codesNT,
+      clientExterne: parseFloat(formData.clientExterne) || 0,
+      total: parseFloat(formData.total) || 0,
+      destinations: rows.filter(row => row.destination || row.armatures)
+    };
+
+    // Call onSave to add new document
+    if (onSave) {
+      console.log('Saving data:', dataToSave); // Debug: Log data being saved
+      onSave(dataToSave);
+    }
   };
 
   return (
@@ -195,8 +271,14 @@ export default function RecapSortieAtelier() {
         </div>
 
         {/* Footer */}
-        <div className="bg-green-100 p-2 text-right text-sm">
-          PRO-04-ENR-10
+        <div className="bg-green-100 p-2 flex justify-between items-center">
+          <button
+            onClick={handleSave}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Save Recap Sortie Atelier
+          </button>
+          <span className="text-sm">PRO-04-ENR-10</span>
         </div>
       </div>
     </div>

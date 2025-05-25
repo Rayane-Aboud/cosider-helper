@@ -1,9 +1,11 @@
 import React from 'react';
 import dayjs from 'dayjs';
+import { getPolesWithSubmissions } from '../../utils/data';
 
-function Dashboard({ poles, setActiveView }) {
+function Dashboard({ setActiveView }) {
   const currentMonth = dayjs().month(); // 4 for May (0-based)
   const currentYear = dayjs().year(); // 2025
+  const poles = getPolesWithSubmissions();
 
   // Filter poles with submissions in the current month
   const polesWithSubmissions = poles.filter((pole) => {
@@ -27,6 +29,16 @@ function Dashboard({ poles, setActiveView }) {
 
   const monthName = dayjs().format('MMMM YYYY');
 
+  const handleViewChange = (view) => {
+    console.log(`setActiveView called with: ${view}`);
+    if (typeof setActiveView === 'function') {
+      setActiveView(view);
+    } else {
+      console.error('setActiveView is not a function:', setActiveView);
+      alert('Erreur: Impossible de changer de vue. Contactez le support.');
+    }
+  };
+
   return (
     <div className="dashboard">
       <div className="mb-4 d-flex justify-content-between align-items-center">
@@ -38,7 +50,7 @@ function Dashboard({ poles, setActiveView }) {
         <div className="col-md-6 mb-4">
           <div
             className="card bg-success text-white h-100"
-            onClick={() => setActiveView('polesRemplis')}
+            onClick={() => handleViewChange('polesWithSubmissions')}
             role="button"
             aria-label="Voir les détails des pôles à jour"
           >
@@ -53,7 +65,7 @@ function Dashboard({ poles, setActiveView }) {
         <div className="col-md-6 mb-4">
           <div
             className="card bg-danger text-white h-100"
-            onClick={() => setActiveView('polesNonRemplis')}
+            onClick={() => handleViewChange('polesWithoutSubmissions')}
             role="button"
             aria-label="Voir les détails des pôles en attente"
           >

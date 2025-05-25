@@ -1,67 +1,59 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { addPole } from '../../utils/data';
 
-function FormPole({ show, onHide, onSave, directors }) {
+function FormPole({ show, onHide, directors }) {
   const [formData, setFormData] = useState({
     code: '',
-    title: '',
-    director_id: '', // Changed to match Laravel naming convention
+    intitule: '',
+    directeur: '',
     commune: '',
-    wilaya: '',
-    last_submission: null // Changed to snake_case
-  })
-  
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-  
+    wilaya: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value
-    })
-  }
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
-    
+    });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+
     try {
-      // Prepare data in the format expected by Laravel
       const submissionData = {
         code: formData.code,
-        title: formData.title,
-        director_id: formData.director_id,
+        intitule: formData.intitule,
+        directeur: formData.directeur,
         commune: formData.commune,
-        wilaya: formData.wilaya,
-        last_submission: formData.last_submission || new Date().toISOString()
-      }
-      
-      // Call the onSave function which should handle the API call
-      const result = await onSave(submissionData)
-      
-      if (result.success) {
-        // Reset form on successful submission
-        setFormData({
-          code: '',
-          title: '',
-          director_id: '',
-          commune: '',
-          wilaya: '',
-          last_submission: null
-        })
-        onHide() // Close the modal
-      } else {
-        setError(result.error || 'Failed to save pole')
-      }
-    } catch (err) {
-      setError(err.message || 'An error occurred')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+        wilaya: formData.wilaya
+      };
 
-  if (!show) return null
+      addPole(submissionData);
+
+      setFormData({
+        code: '',
+        intitule: '',
+        directeur: '',
+        commune: '',
+        wilaya: ''
+      });
+      alert('Pôle ajouté avec succès !');
+      onHide();
+    } catch (err) {
+      setError(err.message || 'Erreur lors de l\'enregistrement du pôle');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!show) return null;
 
   return (
     <>
@@ -70,14 +62,14 @@ function FormPole({ show, onHide, onSave, directors }) {
           <div className="modal-content">
             <div className="modal-header">
               <h5 className="modal-title">Nouveau Pôle</h5>
-              <button 
-                type="button" 
-                className="btn-close" 
+              <button
+                type="button"
+                className="btn-close"
                 onClick={onHide}
                 disabled={isSubmitting}
               ></button>
             </div>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 {error && (
@@ -85,95 +77,99 @@ function FormPole({ show, onHide, onSave, directors }) {
                     {error}
                   </div>
                 )}
-                
+
                 <div className="mb-3">
                   <label htmlFor="code" className="form-label">Code Pôle</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="code" 
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="code"
                     name="code"
                     value={formData.code}
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
+                    placeholder="Ex: P103"
                   />
                 </div>
-                
+
                 <div className="mb-3">
-                  <label htmlFor="title" className="form-label">Intitulé</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="title" 
-                    name="title"
-                    value={formData.title}
+                  <label htmlFor="intitule" className="form-label">Intitulé</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="intitule"
+                    name="intitule"
+                    value={formData.intitule}
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
+                    placeholder="Ex: Pôle Infrastructure"
                   />
                 </div>
-                
+
                 <div className="mb-3">
-                  <label htmlFor="director_id" className="form-label">Directeur</label>
-                  <select 
-                    className="form-select" 
-                    id="director_id" 
-                    name="director_id"
-                    value={formData.director_id}
+                  <label htmlFor="directeur" className="form-label">Directeur</label>
+                  <select
+                    className="form-select"
+                    id="directeur"
+                    name="directeur"
+                    value={formData.directeur}
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
                   >
                     <option value="">Sélectionner un directeur</option>
                     {directors.map(director => (
-                      <option key={director.id} value={director.id}>
-                        {director.name}
+                      <option key={director.nom} value={director.nom}>
+                        {director.nom}
                       </option>
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="mb-3">
                   <label htmlFor="commune" className="form-label">Commune</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="commune" 
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="commune"
                     name="commune"
                     value={formData.commune}
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
+                    placeholder="Ex: Bab Ezzouar"
                   />
                 </div>
-                
+
                 <div className="mb-3">
                   <label htmlFor="wilaya" className="form-label">Wilaya</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    id="wilaya" 
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="wilaya"
                     name="wilaya"
                     value={formData.wilaya}
                     onChange={handleChange}
                     required
                     disabled={isSubmitting}
+                    placeholder="Ex: Alger"
                   />
                 </div>
               </div>
-              
+
               <div className="modal-footer">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={onHide}
                   disabled={isSubmitting}
                 >
                   Annuler
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="btn btn-primary"
                   disabled={isSubmitting}
                 >
@@ -190,7 +186,7 @@ function FormPole({ show, onHide, onSave, directors }) {
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default FormPole
+export default FormPole;

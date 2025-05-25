@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import FormDirecteur from '../forms/FormDirecteur';
+import { directors, poles } from '../../utils/data';
 
-function ListeDesDirecteurs({ directors = [], poles = [], onAddDirector }) {
+function ListeDesDirecteurs({ onAddDirector }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showForm, setShowForm] = useState(false);
 
   const filteredDirectors = directors.filter(
     (director) =>
-      director.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      director.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       director.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      director.phone?.includes(searchTerm)
+      director.telephone?.includes(searchTerm)
   );
 
   const handleAddDirector = (newDirector) => {
@@ -17,9 +18,9 @@ function ListeDesDirecteurs({ directors = [], poles = [], onAddDirector }) {
     setShowForm(false);
   };
 
-  const getAssociatedPoles = (directorId) => {
-    const directorPoles = poles.filter((pole) => pole.director_id === directorId);
-    return directorPoles.map((pole) => pole.code).join(', ') || 'Aucun pôle associé';
+  const getAssociatedPoles = (directorName) => {
+    const director = directors.find((d) => d.nom === directorName);
+    return director?.polesAssocies?.join(', ') || 'Aucun pôle associé';
   };
 
   const handlePrint = () => {
@@ -81,12 +82,12 @@ function ListeDesDirecteurs({ directors = [], poles = [], onAddDirector }) {
           <tbody>
             {filteredDirectors.length > 0 ? (
               filteredDirectors.map((director) => (
-                <tr key={director.id}>
-                  <td>{director.name || 'N/A'}</td>
+                <tr key={director.nom}>
+                  <td>{director.nom || 'N/A'}</td>
                   <td>{director.email || 'N/A'}</td>
-                  <td>{director.phone || 'N/A'}</td>
-                  <td>{getAssociatedPoles(director.id)}</td>
-                  <td>{poles.filter((pole) => pole.director_id === director.id).length}</td>
+                  <td>{director.telephone || 'N/A'}</td>
+                  <td>{getAssociatedPoles(director.nom)}</td>
+                  <td>{director.nombrePoles || 0}</td>
                 </tr>
               ))
             ) : (
@@ -102,7 +103,7 @@ function ListeDesDirecteurs({ directors = [], poles = [], onAddDirector }) {
 
       <div className="d-flex justify-content-end mt-3">
         <button
-          className="btn btn-primary"
+          className="btn btn-outline-danger"
           onClick={handlePrint}
           aria-label="Imprimer la liste des directeurs"
         >
