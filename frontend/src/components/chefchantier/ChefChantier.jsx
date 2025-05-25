@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Menu, 
-  Settings, 
   LogOut,
   Search,
   Plus,
   FileText,
   ChevronDown,
   ChevronRight,
-  File
+  File,
+  Clock
 } from 'lucide-react';
 import ConstructionTimesheet from './form/ConstructionTimesheet';
 import FlashMensuel from './form/FlashMensuel';
@@ -16,6 +16,7 @@ import RecapSortieAtelier from './form/RecapSortieAtelier';
 import RecapSortieChaudronnerie from './form/RecapSortieChaudronnerie';
 import WarehouseInventoryForm from './form/WarehouseInventoryForm';
 import { addDocument, getDocumentsByPole, getPoleByCode } from '../../utils/data';
+import dayjs from 'dayjs';
 
 const ChefChantier = ({ userData, onLogout }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,11 +27,14 @@ const ChefChantier = ({ userData, onLogout }) => {
   });
   const [selectedForm, setSelectedForm] = useState(null);
   const [formData, setFormData] = useState({});
+  const [activeView, setActiveView] = useState('notes');
+  const [selectedDocument, setSelectedDocument] = useState(null);
 
   useEffect(() => {
     console.log('ChefChantier userData:', userData);
     if (!userData?.poleData?.code) {
       console.error('Missing poleData.code in userData');
+      alert('Erreur: Aucun code de pôle disponible. Veuillez vérifier votre connexion.');
     }
   }, [userData]);
 
@@ -74,19 +78,39 @@ const ChefChantier = ({ userData, onLogout }) => {
     note.reference.includes(searchTerm)
   );
 
+  const getDocuments = () => {
+    const poleCode = userData?.poleData?.code;
+    if (!poleCode) {
+      console.error('getDocuments: No poleCode available');
+      return [];
+    }
+    console.log(`Fetching documents for pole: ${poleCode}`);
+    const docs = getDocumentsByPole(poleCode);
+    console.log(`Documents retrieved:`, docs);
+    return docs.filter(doc =>
+      (documentTypeNames[doc.type] || doc.type).toLowerCase().includes(searchTerm.toLowerCase()) ||
+      doc.id.includes(searchTerm)
+    );
+  };
+
+  const formatDate = (mois, month) => {
+    const dateStr = mois || month || 'January 1970';
+    return dayjs(dateStr).format('DD/MM/YYYY');
+  };
+
+  const documentTypeNames = {
+    construction_timesheet: 'Construction Timesheet',
+    flash_mensuel: 'Flash Mensuel',
+    recap_sortie_atelier: 'Récap Sortie Atelier',
+    recap_sortie_chaudronnerie: 'Récap Sortie Chaudronnerie',
+    warehouse_inventory: 'Warehouse Inventory'
+  };
+
   const toggleMenu = (menuKey) => {
     setExpandedMenus(prev => ({
       ...prev,
       [menuKey]: !prev[menuKey]
     }));
-  };
-
-  const formTypeMap = {
-    ConstructionTimesheet: 'construction_timesheet',
-    FlashMensuel: 'flash_mensuel',
-    RecapSortieAtelier: 'recap_sortie_atelier',
-    RecapSortieChaudronnerie: 'recap_sortie_chaudronnerie',
-    WarehouseInventoryForm: 'warehouse_inventory'
   };
 
   const loadFormData = (formType) => {
@@ -162,35 +186,109 @@ const ChefChantier = ({ userData, onLogout }) => {
     }
   };
 
-  const MenuItem = ({ icon: Icon, label, isActive = false, hasSubmenu = false, isExpanded = false, onClick, children }) => (
-    <div>
-      <div 
-        className={`flex items-center px-4 py-3 cursor-pointer hover:bg-red-600 hover:text-white ${isActive ? 'bg-blue-50 border-r-2 border-blue-500' : ''}`}
-        onClick={onClick}
-        title={!isMenuOpen ? label : ''}
-      >
-        <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} />
-        {isMenuOpen && (
-          <>
-            <span className={`flex-1 ${isActive ? 'text-blue-600' : 'text-gray-700'}`}>{label}</span>
-            {hasSubmenu && (
-              isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
-            )}
-          </>
+  const MenuItem = ({ icon: Icon, label, isActive = false, hasSubmenu = false, isExpanded = false, onClick, children }) => {
+    console.log(`Rendering MenuItem: ${label}, isActive=${isActive}, hasSubmenu=${hasSubmenu}, isExpanded=${isExpanded}`);
+    return (
+      <div>
+        <div 
+          className={`flex items-center px-4 py-3 cursor-pointer hover:bg-red-600 hover:text-white ${isActive ? 'bg-blue-50 border-r-2 border-blue-500' : ''}`}
+          onClick={onClick}
+          title={!isMenuOpen ? label : ''}
+        >
+          <Icon className={`w-5 h-5 mr-3 ${isActive ? 'text-blue-600' : 'text-gray-600'} flex-shrink-0`} />
+          {isMenuOpen && (
+            <>
+              <span className={`flex-1 ${isActive ? 'text-blue-600' : 'text-gray-700'}`}>{label}</span>
+              {hasSubmenu && (
+                isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />
+              )}
+            </>
+          )}
+        </div>
+        {hasSubmenu && isExpanded && children && isMenuOpen && (
+          <div className="ml-8">
+            {children}
+          </div>
         )}
       </div>
-      {hasSubmenu && isExpanded && children && isMenuOpen && (
-        <div className="ml-8">
-          {children}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   const renderMainContent = () => {
     if (!userData?.poleData?.code) {
       console.error('renderMainContent: No poleCode available');
       return <div>Erreur: Aucun code de pôle disponible.</div>;
+    }
+
+    if (activeView === 'historique') {
+      const documents = getDocuments();
+      console.log('Rendering historique view, documents:', documents);
+      return (
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-lg font-semibold text-gray-800">Historique des Documents</h2>
+            <div className="flex items-center">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-3 pr-10 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <button className="px-4 py-2 bg-red-600 text-white rounded-r-md hover:bg-red-600 transition-colors">
+                  <Search className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Référence
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Date de Soumission
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {documents.length > 0 ? (
+                  documents.map((doc, index) => (
+                    <tr 
+                      key={doc.id}
+                      className={`hover:bg-gray-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                      onClick={() => setSelectedDocument(doc)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {documentTypeNames[doc.type] || doc.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {doc.id}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatDate(doc.data.mois, doc.data.month)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="px-6 py-4 text-center text-sm text-gray-500">
+                      Aucun document trouvé{searchTerm ? ` pour "${searchTerm}"` : ''}.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      );
     }
 
     const componentMap = {
@@ -317,7 +415,7 @@ const ChefChantier = ({ userData, onLogout }) => {
             </button>
             {isMenuOpen && <span className="font-semibold text-gray-800">Menu</span>}
           </div>
-          {isMenuOpen && <div className="text-red-600 font-bold text-lg">cosidar كوسيدار</div>}
+        
         </div>
 
         <nav className="py-4 flex flex-col h-[calc(100%-4rem)]">
@@ -333,7 +431,9 @@ const ChefChantier = ({ userData, onLogout }) => {
                 icon={FileText} 
                 label="Construction Timesheet"
                 onClick={() => {
+                  console.log('Clicked Construction Timesheet');
                   setSelectedForm('construction_timesheet');
+                  setActiveView('form');
                   loadFormData('construction_timesheet');
                 }}
               />
@@ -341,7 +441,9 @@ const ChefChantier = ({ userData, onLogout }) => {
                 icon={FileText} 
                 label="Flash Mensuel"
                 onClick={() => {
+                  console.log('Clicked Flash Mensuel');
                   setSelectedForm('flash_mensuel');
+                  setActiveView('form');
                   loadFormData('flash_mensuel');
                 }}
               />
@@ -349,7 +451,9 @@ const ChefChantier = ({ userData, onLogout }) => {
                 icon={FileText} 
                 label="Recap Sortie Atelier"
                 onClick={() => {
+                  console.log('Clicked Recap Sortie Atelier');
                   setSelectedForm('recap_sortie_atelier');
+                  setActiveView('form');
                   loadFormData('recap_sortie_atelier');
                 }}
               />
@@ -357,7 +461,9 @@ const ChefChantier = ({ userData, onLogout }) => {
                 icon={FileText} 
                 label="Recap Sortie Chaudronnerie"
                 onClick={() => {
+                  console.log('Clicked Recap Sortie Chaudronnerie');
                   setSelectedForm('recap_sortie_chaudronnerie');
+                  setActiveView('form');
                   loadFormData('recap_sortie_chaudronnerie');
                 }}
               />
@@ -365,8 +471,20 @@ const ChefChantier = ({ userData, onLogout }) => {
                 icon={FileText} 
                 label="Warehouse Inventory"
                 onClick={() => {
+                  console.log('Clicked Warehouse Inventory');
                   setSelectedForm('warehouse_inventory');
+                  setActiveView('form');
                   loadFormData('warehouse_inventory');
+                }}
+              />
+              <MenuItem 
+                icon={Clock} 
+                label="Historique"
+                onClick={() => {
+                  console.log('Clicked Historique');
+                  setSelectedForm(null);
+                  setActiveView('historique');
+                  setSearchTerm('');
                 }}
               />
             </MenuItem>
@@ -389,9 +507,12 @@ const ChefChantier = ({ userData, onLogout }) => {
                 className="logo"
                 style={{ width: '100px', height: '40px', objectFit: 'contain' }}
               />
+        
+             
             </div>
             <span className="text-sm text-gray-600">Chantier</span>
           </div>
+          <h3><b>Application Suivi des données de Contrôle de gestion</b></h3>
         </div>
 
         <div className="flex-1 p-6">
@@ -420,6 +541,42 @@ const ChefChantier = ({ userData, onLogout }) => {
             <div className="flex justify-end mt-6">
               <button 
                 onClick={() => setSelectedNote(null)}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedDocument && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-full">
+            <h3 className="text-lg font-semibold mb-4">Détails du Document</h3>
+            <div className="space-y-3">
+              <div>
+                <span className="font-medium">Type:</span> {documentTypeNames[selectedDocument.type] || selectedDocument.type}
+              </div>
+              <div>
+                <span className="font-medium">Référence:</span> {selectedDocument.id}
+              </div>
+              <div>
+                <span className="font-medium">Pôle:</span> {selectedDocument.pole}
+              </div>
+              <div>
+                <span className="font-medium">Date:</span> {formatDate(selectedDocument.data.mois, selectedDocument.data.month)}
+              </div>
+              <div>
+                <span className="font-medium">Données:</span>
+                <pre className="text-sm bg-gray-100 p-2 rounded overflow-auto max-h-40">
+                  {JSON.stringify(selectedDocument.data, null, 2)}
+                </pre>
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button 
+                onClick={() => setSelectedDocument(null)}
                 className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
               >
                 Fermer
